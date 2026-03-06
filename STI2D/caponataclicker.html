@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Caponata Clicker : Empire Perse</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  /* ===== CSS VARIABLES ===== */
+  :root {
+    --gold: #c9a84c;
+    --gold-light: #f0d080;
+    --gold-dark: #8a6a1a;
+    --crimson: #8b1a1a;
+    --crimson-light: #c04040;
+    --lapis: #1a3a6b;
+    --lapis-light: #2a5aab;
+    --sand: #e8d5a3;
+    --sand-dark: #c4a96a;
+    --obsidian: #0d0a04;
+    --parchment: #f5ead8;
+    --shadow: rgba(0,0,0,0.7);
+    --glow-gold: 0 0 20px rgba(201,168,76,0.6), 0 0 40px rgba(201,168,76,0.3);
+    --glow-red: 0 0 15px rgba(192,64,64,0.5);
+  }
+
+  /* ===== RESET & BASE ===== */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--obsidian);
+    color: var(--sand);
+    font-family: 'Crimson Text', serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    background-image:
+      radial-gradient(ellipse at 20% 50%, rgba(139,26,26,0.15) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, rgba(26,58,107,0.2) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 100%, rgba(201,168,76,0.08) 0%, transparent 50%);
+  }
+
+  /* ===== ANIMATED BACKGROUND ===== */
+  .bg-ornaments {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+  }
+  .bg-ornaments::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 40px,
+        rgba(201,168,76,0.03) 40px,
+        rgba(201,168,76,0.03) 41px
+      );
+  }
+  .star {
+    position: absolute;
+    width: 2px; height: 2px;
+    background: var(--gold-light);
+    border-radius: 50%;
+    animation: twinkle var(--dur, 3s) ease-in-out infinite;
+    opacity: 0;
+  }
+  @keyframes twinkle {
+    0%, 100% { opacity: 0; transform: scale(1); }
+    50% { opacity: 0.8; transform: scale(1.5); }
+  }
+
+  /* ===== LAYOUT ===== */
+  #game {
+    position: relative;
+    z-index: 1;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 16px 40px;
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    grid-template-rows: auto 1fr;
+    gap: 0 20px;
+    min-height: 100vh;
+  }
+
+  /* ===== HEADER ===== */
+  #header {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 24px 0 16px;
+    position: relative;
+  }
+  #header::after {
+    content: '';
+    display: block;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--gold), var(--crimson), var(--gold), transparent);
+    margin-top: 16px;
+  }
+  .title-main {
+    font-family: 'Cinzel Decorative', cursive;
+    font-size: clamp(1.4rem, 3.5vw, 2.8rem);
+    font-weight: 900;
+    color: var(--gold-light);
+    text-shadow: 0 0 30px rgba(201,168,76,0.8), 0 2px 4px rgba(0,0,0,0.9);
+    letter-spacing: 0.05em;
+    line-height: 1.1;
+  }
+  .title-sub {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(0.7rem, 1.8vw, 1rem);
+    color: var(--crimson-light);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    margin-top: 4px;
+    opacity: 0.9;
+  }
+  .persian-divider {
+    font-size: 1.4rem;
+    color: var(--gold);
+    letter-spacing: 0.5em;
+    display: block;
+    margin: 6px 0;
+  }
+
+  /* ===== LEFT PANEL ===== */
+  #left-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 8px 0;
+  }
+
+  /* ===== COUNTER SECTION ===== */
+  #counter-section {
+    background: linear-gradient(135deg, rgba(20,12,4,0.95) 0%, rgba(30,18,6,0.9) 100%);
+    border: 1px solid var(--gold-dark);
+    border-radius: 4px;
+    padding: 20px 24px;
+    text-align: center;
+    box-shadow: inset 0 1px 0 rgba(201,168,76,0.2), 0 4px 20px rgba(0,0,0,0.5);
+    position: relative;
+    overflow: hidden;
+  }
+  #counter-section::before {
+    content: '◆';
+    position: absolute;
+    top: -8px; left: 50%;
+    transform: translateX(-50%);
+    color: var(--gold);
+    font-size: 14px;
+    background: #14080a;
+    padding: 0 8px;
+  }
+  .counter-label {
+    font-family: 'Cinzel', serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.25em;
+    color: var(--gold-dark);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  #caponata-count {
+    font-family: 'Cinzel Decorative', cursive;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 700;
+    color: var(--gold-light);
+    text-shadow: var(--glow-gold);
+    line-height: 1;
+    transition: transform 0.1s ease;
+  }
+  #caponata-count.pulse {
+    animation: countPulse 0.15s ease-out;
+  }
+  @keyframes countPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.04); }
+    100% { transform: scale(1); }
+  }
+  .caponata-icon-big { font-size: 1.8rem; }
+  .stats-row {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    margin-top: 12px;
+  }
+  .stat-item {
+    text-align: center;
+  }
+  .stat-value {
+    font-family: 'Cinzel', serif;
+    font-size: 1rem;
+    color: var(--gold);
+    font-weight: 600;
+  }
+  .stat-label {
+    font-size: 0.7rem;
+    color: var(--sand-dark);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  /* ===== PROGRESS BAR ===== */
+  #progress-section {
+    background: rgba(10,6,2,0.8);
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 4px;
+    padding: 12px 16px;
+  }
+  .progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .progress-label {
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    color: var(--gold-dark);
+    text-transform: uppercase;
+  }
+  .progress-target {
+    font-size: 0.75rem;
+    color: var(--sand-dark);
+  }
+  .progress-track {
+    height: 8px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 4px;
+    border: 1px solid rgba(201,168,76,0.15);
+    overflow: hidden;
+    position: relative;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--crimson), var(--gold), var(--gold-light));
+    border-radius: 4px;
+    transition: width 0.5s ease;
+    position: relative;
+  }
+  .progress-fill::after {
+    content: '';
+    position: absolute;
+    right: 0; top: 0; bottom: 0;
+    width: 20px;
+    background: rgba(255,255,255,0.4);
+    filter: blur(4px);
+    animation: shimmer 1.5s ease-in-out infinite;
+  }
+  @keyframes shimmer {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 1; }
+  }
+
+  /* ===== CLICK BUTTON ===== */
+  #click-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+  #click-btn {
+    position: relative;
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    background: radial-gradient(circle at 35% 35%, #f5d080, #c9a84c 40%, #8a6a1a 70%, #5a4010);
+    box-shadow:
+      0 0 0 3px var(--gold-dark),
+      0 0 0 6px rgba(201,168,76,0.2),
+      0 0 40px rgba(201,168,76,0.4),
+      inset 0 2px 4px rgba(255,255,255,0.3),
+      inset 0 -2px 8px rgba(0,0,0,0.5);
+    transition: transform 0.08s ease, box-shadow 0.08s ease;
+    font-size: 5rem;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  #click-btn::before {
+    content: '';
+    position: absolute;
+    inset: 8px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.2);
+    pointer-events: none;
+  }
+  #click-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 25%, rgba(255,255,255,0.25), transparent 60%);
+    pointer-events: none;
+  }
+  #click-btn:hover {
+    transform: scale(1.04);
+    box-shadow:
+      0 0 0 3px var(--gold),
+      0 0 0 8px rgba(201,168,76,0.3),
+      0 0 60px rgba(201,168,76,0.6),
+      inset 0 2px 4px rgba(255,255,255,0.3),
+      inset 0 -2px 8px rgba(0,0,0,0.5);
+  }
+  #click-btn:active {
+    transform: scale(0.94);
+    box-shadow:
+      0 0 0 3px var(--gold-dark),
+      0 0 0 5px rgba(201,168,76,0.15),
+      0 0 20px rgba(201,168,76,0.3),
+      inset 0 3px 8px rgba(0,0,0,0.6);
+  }
+  .click-hint {
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    color: var(--gold-dark);
+    text-transform: uppercase;
+  }
+  .click-power {
+    font-family: 'Cinzel', serif;
+    font-size: 0.85rem;
+    color: var(--gold);
+  }
+
+  /* ===== FLOATING CLICK NUMBERS ===== */
+  .float-text {
+    position: fixed;
+    font-family: 'Cinzel Decorative', cursive;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--gold-light);
+    text-shadow: 0 0 10px rgba(201,168,76,0.8);
+    pointer-events: none;
+    z-index: 9999;
+    animation: floatUp 0.9s ease-out forwards;
+    white-space: nowrap;
+  }
+  @keyframes floatUp {
+    0% { opacity: 1; transform: translateY(0) scale(1); }
+    100% { opacity: 0; transform: translateY(-80px) scale(0.7); }
+  }
+
+  /* ===== UPGRADES / SPECIAL UPGRADES ===== */
+  #upgrades-section {
+    background: rgba(10,6,2,0.8);
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 4px;
+    padding: 14px;
+  }
+  .section-title {
+    font-family: 'Cinzel', serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.25em;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(201,168,76,0.2);
+  }
+  #special-upgrades {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .special-btn {
+    flex: 1;
+    min-width: 120px;
+    background: linear-gradient(135deg, rgba(26,58,107,0.6), rgba(10,20,50,0.8));
+    border: 1px solid var(--lapis-light);
+    border-radius: 4px;
+    padding: 8px 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: left;
+    color: var(--sand);
+    font-family: 'Crimson Text', serif;
+  }
+  .special-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, rgba(42,90,171,0.7), rgba(20,40,90,0.9));
+    border-color: var(--gold);
+    box-shadow: 0 0 15px rgba(42,90,171,0.4);
+    transform: translateY(-1px);
+  }
+  .special-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  .special-btn.purchased {
+    background: linear-gradient(135deg, rgba(26,80,26,0.6), rgba(10,30,10,0.8));
+    border-color: #4a8a4a;
+    cursor: default;
+  }
+  .special-btn .s-icon { font-size: 1.2rem; }
+  .special-btn .s-name { font-family: 'Cinzel', serif; font-size: 0.68rem; letter-spacing: 0.1em; color: var(--gold-light); }
+  .special-btn .s-desc { font-size: 0.7rem; color: var(--sand-dark); margin: 2px 0; }
+  .special-btn .s-cost { font-size: 0.75rem; color: var(--gold); font-weight: 600; }
+
+  /* ===== MILESTONES ===== */
+  #milestones-section {
+    background: rgba(10,6,2,0.8);
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 4px;
+    padding: 14px;
+  }
+  #milestones-list {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .milestone {
+    flex: 1;
+    min-width: 80px;
+    text-align: center;
+    padding: 8px 6px;
+    border-radius: 4px;
+    border: 1px solid rgba(201,168,76,0.15);
+    background: rgba(255,255,255,0.03);
+    transition: all 0.4s ease;
+    opacity: 0.4;
+  }
+  .milestone.unlocked {
+    opacity: 1;
+    border-color: var(--gold);
+    background: rgba(201,168,76,0.08);
+    box-shadow: 0 0 10px rgba(201,168,76,0.2);
+    animation: unlockFlash 0.6s ease-out;
+  }
+  @keyframes unlockFlash {
+    0% { box-shadow: 0 0 0px rgba(201,168,76,0); }
+    50% { box-shadow: 0 0 30px rgba(201,168,76,0.8); }
+    100% { box-shadow: 0 0 10px rgba(201,168,76,0.2); }
+  }
+  .milestone-icon { font-size: 1.4rem; }
+  .milestone-name { font-family: 'Cinzel', serif; font-size: 0.58rem; letter-spacing: 0.05em; color: var(--gold-light); margin-top: 4px; }
+  .milestone-req { font-size: 0.65rem; color: var(--sand-dark); }
+
+  /* ===== RIGHT PANEL - BUILDINGS ===== */
+  #right-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: 8px 0;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--gold-dark) transparent;
+  }
+  #right-panel::-webkit-scrollbar { width: 4px; }
+  #right-panel::-webkit-scrollbar-thumb { background: var(--gold-dark); border-radius: 2px; }
+
+  .buildings-header {
+    font-family: 'Cinzel', serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.25em;
+    color: var(--gold);
+    text-transform: uppercase;
+    padding: 10px 14px 8px;
+    border-bottom: 1px solid rgba(201,168,76,0.2);
+    background: rgba(10,6,2,0.9);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .building-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: linear-gradient(90deg, rgba(15,9,3,0.95), rgba(20,12,4,0.9));
+    position: relative;
+    overflow: hidden;
+  }
+  .building-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: linear-gradient(180deg, var(--gold-dark), transparent);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .building-card:hover:not(.locked):not(.cannot-afford) {
+    background: linear-gradient(90deg, rgba(30,18,6,0.95), rgba(25,15,5,0.9));
+  }
+  .building-card:hover::before { opacity: 1; }
+  .building-card.locked {
+    opacity: 0.35;
+    cursor: not-allowed;
+    filter: grayscale(0.6);
+  }
+  .building-card.cannot-afford {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  .building-card.can-afford {
+    background: linear-gradient(90deg, rgba(25,15,5,0.98), rgba(35,20,8,0.95));
+  }
+  .building-card.can-afford::before { opacity: 1; background: var(--gold); }
+  .building-card.can-afford:hover {
+    background: linear-gradient(90deg, rgba(40,25,8,0.98), rgba(50,30,10,0.95));
+    box-shadow: inset 0 0 20px rgba(201,168,76,0.08);
+  }
+
+  .building-icon {
+    font-size: 2.2rem;
+    width: 44px;
+    text-align: center;
+    flex-shrink: 0;
+    filter: drop-shadow(0 0 6px rgba(201,168,76,0.4));
+  }
+  .building-info { flex: 1; min-width: 0; }
+  .building-name {
+    font-family: 'Cinzel', serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--gold-light);
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .building-desc {
+    font-size: 0.7rem;
+    color: var(--sand-dark);
+    margin: 1px 0;
+  }
+  .building-cps {
+    font-size: 0.7rem;
+    color: var(--crimson-light);
+    font-style: italic;
+  }
+  .building-cost {
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .cost-amount {
+    font-family: 'Cinzel', serif;
+    font-size: 0.8rem;
+    color: var(--gold);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .building-count {
+    font-family: 'Cinzel Decorative', cursive;
+    font-size: 1.2rem;
+    color: var(--gold-light);
+    text-align: right;
+    font-weight: 700;
+  }
+  .lock-badge {
+    position: absolute;
+    right: 10px; top: 8px;
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    color: var(--sand-dark);
+    font-family: 'Cinzel', serif;
+    text-transform: uppercase;
+  }
+
+  /* ===== NOTIFICATION ===== */
+  #notification {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-100px);
+    background: linear-gradient(135deg, rgba(20,12,4,0.98), rgba(30,18,6,0.98));
+    border: 1px solid var(--gold);
+    border-radius: 4px;
+    padding: 12px 24px;
+    font-family: 'Cinzel', serif;
+    font-size: 0.85rem;
+    color: var(--gold-light);
+    box-shadow: 0 4px 30px rgba(0,0,0,0.8), var(--glow-gold);
+    z-index: 10000;
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    text-align: center;
+    letter-spacing: 0.1em;
+    max-width: 90vw;
+  }
+  #notification.show {
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* ===== TOTAL PRODUCED ===== */
+  #total-produced {
+    font-size: 0.75rem;
+    color: var(--sand-dark);
+    font-style: italic;
+  }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 800px) {
+    #game {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto auto 1fr auto;
+      gap: 12px 0;
+    }
+    #right-panel {
+      max-height: none;
+      overflow-y: visible;
+    }
+    #click-btn { width: 140px; height: 140px; font-size: 4rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- BACKGROUND STARS -->
+<div class="bg-ornaments" id="stars-container"></div>
+
+<!-- NOTIFICATION -->
+<div id="notification">🌟 Bienvenue dans l'Empire !</div>
+
+<!-- MAIN GAME -->
+<div id="game">
+
+  <!-- HEADER -->
+  <div id="header">
+    <div class="title-main">Caponata Clicker</div>
+    <span class="persian-divider">𒀭 ✦ 𒀭</span>
+    <div class="title-sub">Empire Perse — L'âge d'or de la Caponata</div>
+  </div>
+
+  <!-- LEFT PANEL -->
+  <div id="left-panel">
+
+    <!-- COUNTER -->
+    <div id="counter-section">
+      <div class="counter-label">Vos Caponatas</div>
+      <div id="caponata-count">0</div>
+      <div style="margin-top:4px">
+        <span class="caponata-icon-big">🍆</span>
+      </div>
+      <div class="stats-row">
+        <div class="stat-item">
+          <div class="stat-value" id="cps-display">0</div>
+          <div class="stat-label">/ seconde</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="click-power-display">1</div>
+          <div class="stat-label">/ clic</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="total-display">0</div>
+          <div class="stat-label">au total</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROGRESS BAR -->
+    <div id="progress-section">
+      <div class="progress-header">
+        <span class="progress-label">🏛️ Prochain Déblocage</span>
+        <span class="progress-target" id="progress-target-label">100 🍆</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+      </div>
+    </div>
+
+    <!-- CLICK BUTTON -->
+    <div id="click-section">
+      <button id="click-btn" title="Cliquez pour produire des Caponatas !">🍆</button>
+      <div class="click-hint">⟡ Cliquez pour produire ⟡</div>
+      <div class="click-power">+<span id="click-val">1</span> Caponata par clic</div>
+    </div>
+
+    <!-- SPECIAL UPGRADES -->
+    <div id="upgrades-section">
+      <div class="section-title">⚗️ Améliorations Impériales</div>
+      <div id="special-upgrades">
+        <!-- Injected by JS -->
+      </div>
+    </div>
+
+    <!-- MILESTONES -->
+    <div id="milestones-section">
+      <div class="section-title">🏆 Étapes de l'Empire</div>
+      <div id="milestones-list">
+        <!-- Injected by JS -->
+      </div>
+    </div>
+
+  </div><!-- /left-panel -->
+
+  <!-- RIGHT PANEL - BUILDINGS -->
+  <div id="right-panel">
+    <div class="buildings-header">🏗️ Bâtiments de l'Empire</div>
+    <div id="buildings-list">
+      <!-- Injected by JS -->
+    </div>
+  </div>
+
+</div><!-- /game -->
+
+<script>
+// ============================================================
+//  CAPONATA CLICKER : EMPIRE PERSE
+//  Idle/Clicker Game — Full JavaScript Logic
+// ============================================================
+
+// ===== GAME STATE =====
+const state = {
+  caponatas: 0,         // Current caponatas
+  totalEarned: 0,       // All-time total
+  clickPower: 1,        // Caponatas per click
+  cps: 0,               // Caponatas per second (computed)
+  globalMultiplier: 1,  // Global production multiplier
+  clickMultiplier: 1,   // Click multiplier
+  buildings: {},        // { id: count }
+  upgrades: {},         // { id: purchased }
+  milestones: {},       // { id: unlocked }
+  lastSave: Date.now(),
+  lastTick: Date.now(),
+};
+
+// ===== BUILDINGS DEFINITION =====
+// cost = baseCost * 1.15^count (exponential growth)
+const BUILDINGS = [
+  {
+    id: 'merchant',
+    name: 'Marchand Perse',
+    icon: '🧑‍🌾',
+    desc: 'Un marchand industrieux qui vend de la caponata.',
+    baseCost: 15,
+    baseCps: 0.1,
+    unlockAt: 0,
+    costGrowth: 1.15,
+  },
+  {
+    id: 'caravan',
+    name: 'Caravane',
+    icon: '🐪',
+    desc: 'Une caravane chargée de caponata traverse le désert.',
+    baseCost: 100,
+    baseCps: 0.5,
+    unlockAt: 100,
+    costGrowth: 1.15,
+  },
+  {
+    id: 'bazaar',
+    name: 'Marché Perse',
+    icon: '🏪',
+    desc: 'Un bazar animé au cœur de la Perse.',
+    baseCost: 500,
+    baseCps: 2,
+    unlockAt: 1000,
+    costGrowth: 1.15,
+  },
+  {
+    id: 'city',
+    name: 'Ville Persane',
+    icon: '🕌',
+    desc: 'Une grande cité où la caponata coule à flots.',
+    baseCost: 3000,
+    baseCps: 10,
+    unlockAt: 10000,
+    costGrowth: 1.15,
+  },
+  {
+    id: 'empire',
+    name: 'Empire Perse',
+    icon: '👑',
+    desc: "L'empire tout entier est dévoué à la caponata.",
+    baseCost: 20000,
+    baseCps: 65,
+    unlockAt: 1000000,
+    costGrowth: 1.15,
+  },
+];
+
+// ===== SPECIAL UPGRADES DEFINITION =====
+const SPECIAL_UPGRADES = [
+  {
+    id: 'double_click',
+    name: 'Double Frappe',
+    icon: '⚡',
+    desc: 'x2 au clic',
+    cost: 200,
+    effect: () => { state.clickMultiplier *= 2; },
+    requirement: () => state.totalEarned >= 100,
+  },
+  {
+    id: 'golden_spice',
+    name: 'Épice Dorée',
+    icon: '✨',
+    desc: '+50% production',
+    cost: 1500,
+    effect: () => { state.globalMultiplier *= 1.5; },
+    requirement: () => state.totalEarned >= 500,
+  },
+  {
+    id: 'super_click',
+    name: 'Super Clic',
+    icon: '💥',
+    desc: '5× puissance clic',
+    cost: 10000,
+    effect: () => { state.clickMultiplier *= 5; },
+    requirement: () => state.totalEarned >= 5000,
+  },
+  {
+    id: 'persian_wisdom',
+    name: 'Sagesse Perse',
+    icon: '📜',
+    desc: 'x2 toute production',
+    cost: 50000,
+    effect: () => { state.globalMultiplier *= 2; },
+    requirement: () => state.totalEarned >= 20000,
+  },
+  {
+    id: 'golden_age',
+    name: "Âge d'Or",
+    icon: '🌟',
+    desc: '×3 production globale',
+    cost: 500000,
+    effect: () => { state.globalMultiplier *= 3; },
+    requirement: () => state.totalEarned >= 200000,
+  },
+  {
+    id: 'divine_caponata',
+    name: 'Caponata Divine',
+    icon: '🔱',
+    desc: '×10 clic + ×2 prod',
+    cost: 5000000,
+    effect: () => { state.clickMultiplier *= 10; state.globalMultiplier *= 2; },
+    requirement: () => state.totalEarned >= 1000000,
+  },
+];
+
+// ===== MILESTONES =====
+const MILESTONES = [
+  { id: 'm100',     icon: '🌱', name: 'Premier Pas',    req: 100,      desc: '100 🍆' },
+  { id: 'm1k',      icon: '🏺', name: 'Commerçant',     req: 1000,     desc: '1 000 🍆' },
+  { id: 'm10k',     icon: '🕌', name: 'Grande Cité',    req: 10000,    desc: '10 000 🍆' },
+  { id: 'm100k',    icon: '⚔️', name: 'Conquérant',     req: 100000,   desc: '100 k 🍆' },
+  { id: 'm1m',      icon: '👑', name: 'Grand Roi',      req: 1000000,  desc: '1 M 🍆' },
+  { id: 'm10m',     icon: '🌍', name: 'Maître du Monde',req: 10000000, desc: '10 M 🍆' },
+];
+
+// ===== HELPER: Format large numbers =====
+function fmt(n) {
+  if (n === undefined || n === null) n = 0;
+  if (n < 1000) return Math.floor(n).toLocaleString('fr');
+  if (n < 1e6)  return (n / 1e3).toFixed(2) + ' k';
+  if (n < 1e9)  return (n / 1e6).toFixed(2) + ' M';
+  if (n < 1e12) return (n / 1e9).toFixed(2) + ' G';
+  return (n / 1e12).toFixed(2) + ' T';
+}
+
+// ===== COMPUTE BUILDING COST =====
+function getBuildingCost(b) {
+  const count = state.buildings[b.id] || 0;
+  return Math.ceil(b.baseCost * Math.pow(b.costGrowth, count));
+}
+
+// ===== COMPUTE TOTAL CPS =====
+function computeCps() {
+  let total = 0;
+  for (const b of BUILDINGS) {
+    const count = state.buildings[b.id] || 0;
+    total += b.baseCps * count;
+  }
+  return total * state.globalMultiplier;
+}
+
+// ===== COMPUTE CLICK POWER =====
+function computeClickPower() {
+  // Base click power: 1 + 10% of CPS, multiplied by clickMultiplier
+  const base = 1 + computeCps() * 0.1;
+  return Math.max(1, base) * state.clickMultiplier;
+}
+
+// ===== BUY BUILDING =====
+function buyBuilding(id) {
+  const b = BUILDINGS.find(x => x.id === id);
+  if (!b) return;
+  if (state.totalEarned < b.unlockAt) { showNotif('🔒 Débloquez ce bâtiment d\'abord !'); return; }
+  const cost = getBuildingCost(b);
+  if (state.caponatas < cost) { showNotif('💸 Pas assez de Caponatas !'); return; }
+  state.caponatas -= cost;
+  state.buildings[id] = (state.buildings[id] || 0) + 1;
+  state.cps = computeCps();
+  state.clickPower = computeClickPower();
+  showNotif(`${b.icon} ${b.name} acheté ! (×${state.buildings[id]})`);
+  renderBuildings();
+  updateUI();
+}
+
+// ===== BUY SPECIAL UPGRADE =====
+function buyUpgrade(id) {
+  if (state.upgrades[id]) return;
+  const u = SPECIAL_UPGRADES.find(x => x.id === id);
+  if (!u) return;
+  if (!u.requirement()) { showNotif('🔒 Condition non remplie !'); return; }
+  if (state.caponatas < u.cost) { showNotif('💸 Pas assez de Caponatas !'); return; }
+  state.caponatas -= u.cost;
+  state.upgrades[id] = true;
+  u.effect();
+  state.cps = computeCps();
+  state.clickPower = computeClickPower();
+  showNotif(`${u.icon} ${u.name} débloqué ! ${u.desc}`);
+  renderUpgrades();
+  updateUI();
+}
+
+// ===== CLICK HANDLER =====
+function handleClick(e) {
+  const power = computeClickPower();
+  state.caponatas += power;
+  state.totalEarned += power;
+  state.clickPower = power;
+  spawnFloatText(e, `+${fmt(power)}`);
+  updateUI();
+  // Pulse animation
+  document.getElementById('caponata-count').classList.remove('pulse');
+  void document.getElementById('caponata-count').offsetWidth;
+  document.getElementById('caponata-count').classList.add('pulse');
+}
+
+// ===== GAME TICK (auto production) =====
+let tickInterval;
+function gameTick() {
+  const now = Date.now();
+  const delta = (now - state.lastTick) / 1000;
+  state.lastTick = now;
+  const cps = computeCps();
+  const gained = cps * delta;
+  if (gained > 0) {
+    state.caponatas += gained;
+    state.totalEarned += gained;
+  }
+  state.cps = cps;
+  state.clickPower = computeClickPower();
+  updateUI();
+  checkMilestones();
+  // Auto-save every 30s
+  if (now - state.lastSave > 30000) {
+    saveGame();
+    state.lastSave = now;
+  }
+}
+
+// ===== UPDATE UI =====
+function updateUI() {
+  document.getElementById('caponata-count').textContent = fmt(state.caponatas);
+  document.getElementById('cps-display').textContent = fmt(state.cps);
+  document.getElementById('click-power-display').textContent = fmt(computeClickPower());
+  document.getElementById('total-display').textContent = fmt(state.totalEarned);
+  document.getElementById('click-val').textContent = fmt(computeClickPower());
+  updateProgressBar();
+  updateBuildingAffordability();
+  updateUpgradeAvailability();
+}
+
+// ===== PROGRESS BAR =====
+function updateProgressBar() {
+  const milestonesSorted = [...MILESTONES].sort((a,b) => a.req - b.req);
+  let nextMilestone = milestonesSorted.find(m => state.totalEarned < m.req);
+  if (!nextMilestone) {
+    document.getElementById('progress-fill').style.width = '100%';
+    document.getElementById('progress-target-label').textContent = '✅ Toutes étapes !';
+    return;
+  }
+  // find previous milestone threshold
+  const idx = milestonesSorted.indexOf(nextMilestone);
+  const prev = idx > 0 ? milestonesSorted[idx-1].req : 0;
+  const pct = Math.min(100, ((state.totalEarned - prev) / (nextMilestone.req - prev)) * 100);
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-target-label').textContent = fmt(nextMilestone.req) + ' 🍆';
+}
+
+// ===== CHECK MILESTONES =====
+function checkMilestones() {
+  for (const m of MILESTONES) {
+    if (!state.milestones[m.id] && state.totalEarned >= m.req) {
+      state.milestones[m.id] = true;
+      const el = document.getElementById('ms-' + m.id);
+      if (el) el.classList.add('unlocked');
+      showNotif(`🏆 Étape débloquée : ${m.name} !`);
+    }
+  }
+}
+
+// ===== RENDER BUILDINGS =====
+function renderBuildings() {
+  const container = document.getElementById('buildings-list');
+  container.innerHTML = '';
+  for (const b of BUILDINGS) {
+    const count = state.buildings[b.id] || 0;
+    const cost = getBuildingCost(b);
+    const locked = state.totalEarned < b.unlockAt;
+    const canAfford = state.caponatas >= cost;
+    const cpsEach = (b.baseCps * state.globalMultiplier).toFixed(2);
+    const totalCps = (b.baseCps * state.globalMultiplier * count).toFixed(1);
+
+    const card = document.createElement('div');
+    card.className = 'building-card' +
+      (locked ? ' locked' : canAfford ? ' can-afford' : ' cannot-afford');
+    card.setAttribute('data-id', b.id);
+
+    let lockInfo = locked ? `<span class="lock-badge">🔒 ${fmt(b.unlockAt)}</span>` : '';
+
+    card.innerHTML = `
+      <div class="building-icon">${b.icon}</div>
+      <div class="building-info">
+        <div class="building-name">${b.name}</div>
+        <div class="building-desc">${b.desc}</div>
+        <div class="building-cps">${cpsEach} CPS chacun · ${totalCps} CPS total</div>
+      </div>
+      <div class="building-cost">
+        <div class="building-count">${count}</div>
+        <div class="cost-amount">${fmt(cost)} 🍆</div>
+      </div>
+      ${lockInfo}
+    `;
+    if (!locked) {
+      card.addEventListener('click', () => buyBuilding(b.id));
+    }
+    container.appendChild(card);
+  }
+}
+
+// ===== UPDATE BUILDING AFFORDABILITY (without full re-render) =====
+function updateBuildingAffordability() {
+  for (const b of BUILDINGS) {
+    const card = document.querySelector(`.building-card[data-id="${b.id}"]`);
+    if (!card) continue;
+    const locked = state.totalEarned < b.unlockAt;
+    if (locked) continue;
+    const cost = getBuildingCost(b);
+    const canAfford = state.caponatas >= cost;
+    // Update cost display
+    const costEl = card.querySelector('.cost-amount');
+    if (costEl) costEl.textContent = fmt(cost) + ' 🍆';
+    // Update classes
+    card.classList.remove('can-afford', 'cannot-afford');
+    card.classList.add(canAfford ? 'can-afford' : 'cannot-afford');
+  }
+}
+
+// ===== RENDER SPECIAL UPGRADES =====
+function renderUpgrades() {
+  const container = document.getElementById('special-upgrades');
+  container.innerHTML = '';
+  for (const u of SPECIAL_UPGRADES) {
+    const purchased = !!state.upgrades[u.id];
+    const available = u.requirement();
+    const canAfford = state.caponatas >= u.cost;
+    if (purchased) {
+      const btn = document.createElement('button');
+      btn.className = 'special-btn purchased';
+      btn.innerHTML = `<div class="s-icon">${u.icon}</div>
+        <div class="s-name">${u.name}</div>
+        <div class="s-desc">✅ Acheté</div>`;
+      container.appendChild(btn);
+    } else if (available) {
+      const btn = document.createElement('button');
+      btn.className = 'special-btn';
+      btn.disabled = !canAfford;
+      btn.innerHTML = `<div class="s-icon">${u.icon}</div>
+        <div class="s-name">${u.name}</div>
+        <div class="s-desc">${u.desc}</div>
+        <div class="s-cost">${fmt(u.cost)} 🍆</div>`;
+      btn.addEventListener('click', () => buyUpgrade(u.id));
+      container.appendChild(btn);
+    }
+  }
+}
+
+// ===== UPDATE UPGRADE AVAILABILITY =====
+function updateUpgradeAvailability() {
+  const container = document.getElementById('special-upgrades');
+  // Check if any new upgrades became available
+  let needRender = false;
+  for (const u of SPECIAL_UPGRADES) {
+    if (!state.upgrades[u.id] && u.requirement()) {
+      const existing = container.querySelector(`[data-uid="${u.id}"]`);
+      if (!existing) { needRender = true; break; }
+    }
+  }
+  if (needRender) renderUpgrades();
+  // Update disabled states
+  const btns = container.querySelectorAll('.special-btn:not(.purchased)');
+  btns.forEach(btn => {
+    const uid = btn.getAttribute('data-uid');
+    // Update cost-based disabled state
+    const u = SPECIAL_UPGRADES.find(x => btn.querySelector('.s-name')?.textContent === x.name);
+    if (u) btn.disabled = state.caponatas < u.cost;
+  });
+  renderUpgrades(); // simple full re-render for accuracy
+}
+
+// ===== RENDER MILESTONES =====
+function renderMilestones() {
+  const container = document.getElementById('milestones-list');
+  container.innerHTML = '';
+  for (const m of MILESTONES) {
+    const div = document.createElement('div');
+    div.className = 'milestone' + (state.milestones[m.id] ? ' unlocked' : '');
+    div.id = 'ms-' + m.id;
+    div.innerHTML = `
+      <div class="milestone-icon">${m.icon}</div>
+      <div class="milestone-name">${m.name}</div>
+      <div class="milestone-req">${m.desc}</div>
+    `;
+    container.appendChild(div);
+  }
+}
+
+// ===== SPAWN FLOATING TEXT =====
+function spawnFloatText(e, text) {
+  const el = document.createElement('div');
+  el.className = 'float-text';
+  el.textContent = text;
+  const jitter = (Math.random() - 0.5) * 60;
+  el.style.left = (e.clientX + jitter) + 'px';
+  el.style.top = (e.clientY - 10) + 'px';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 950);
+}
+
+// ===== NOTIFICATION =====
+let notifTimeout;
+function showNotif(msg) {
+  const el = document.getElementById('notification');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(notifTimeout);
+  notifTimeout = setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+// ===== SAVE / LOAD =====
+function saveGame() {
+  const save = {
+    caponatas: state.caponatas,
+    totalEarned: state.totalEarned,
+    clickMultiplier: state.clickMultiplier,
+    globalMultiplier: state.globalMultiplier,
+    buildings: { ...state.buildings },
+    upgrades: { ...state.upgrades },
+    milestones: { ...state.milestones },
+  };
+  try {
+    localStorage.setItem('caponata_empire_save', JSON.stringify(save));
+  } catch(e) { /* Sauvegarde non disponible */ }
+}
+
+function loadGame() {
+  try {
+    const raw = localStorage.getItem('caponata_empire_save');
+    if (!raw) return;
+    const save = JSON.parse(raw);
+    state.caponatas      = save.caponatas      || 0;
+    state.totalEarned    = save.totalEarned    || 0;
+    state.clickMultiplier = save.clickMultiplier || 1;
+    state.globalMultiplier = save.globalMultiplier || 1;
+    state.buildings      = save.buildings      || {};
+    state.upgrades       = save.upgrades       || {};
+    state.milestones     = save.milestones     || {};
+    showNotif('💾 Partie chargée avec succès !');
+  } catch(e) {
+    showNotif('⚠️ Impossible de charger la sauvegarde.');
+  }
+}
+
+// ===== GENERATE STARS =====
+function generateStars() {
+  const container = document.getElementById('stars-container');
+  for (let i = 0; i < 80; i++) {
+    const star = document.createElement('div');
+    star.className = 'star';
+    star.style.left = Math.random() * 100 + '%';
+    star.style.top = Math.random() * 100 + '%';
+    star.style.setProperty('--dur', (2 + Math.random() * 4) + 's');
+    star.style.animationDelay = (Math.random() * 5) + 's';
+    container.appendChild(star);
+  }
+}
+
+// ===== INIT =====
+function init() {
+  generateStars();
+  loadGame();
+  state.cps = computeCps();
+  state.clickPower = computeClickPower();
+  state.lastTick = Date.now();
+
+  // Build UI
+  renderBuildings();
+  renderUpgrades();
+  renderMilestones();
+  updateUI();
+
+  // Click button
+  document.getElementById('click-btn').addEventListener('click', handleClick);
+
+  // Game loop: 20 ticks/second
+  tickInterval = setInterval(gameTick, 50);
+
+  // UI refresh every 250ms (less aggressive)
+  setInterval(() => {
+    renderUpgrades();
+    updateUI();
+  }, 250);
+
+  // Auto-save every 30s
+  setInterval(saveGame, 30000);
+
+  // Save on page unload
+  window.addEventListener('beforeunload', saveGame);
+
+  showNotif('🏛️ Bienvenue dans l\'Empire Perse !');
+}
+
+// ===== START =====
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
