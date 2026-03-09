@@ -242,6 +242,98 @@ body {
 /* Smoke/fire particles */
 .spark { position:absolute; border-radius:50%; pointer-events:none; animation:sparkFly linear forwards; z-index:25; }
 @keyframes sparkFly { 0%{opacity:1;transform:translate(0,0) scale(1);} 100%{opacity:0;transform:translate(var(--tx),var(--ty)) scale(.2);} }
+
+/* ═══ SPELLS BAR ═══ */
+.spells-bar {
+  position:absolute; bottom:56px; right:18px;
+  display:flex; flex-direction:column; gap:7px; z-index:110;
+  align-items:flex-end;
+}
+.spell-btn {
+  width:58px; height:58px; border-radius:14px;
+  border:2px solid rgba(232,160,32,.4);
+  background:rgba(8,0,20,.88);
+  cursor:pointer; display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  transition:all .2s; font-size:24px;
+  position:relative; overflow:hidden;
+}
+.spell-btn::before {
+  content:''; position:absolute; inset:0;
+  background:var(--spell-glow, rgba(100,80,255,.15));
+  opacity:0; transition:opacity .2s;
+}
+.spell-btn:hover::before { opacity:1; }
+.spell-btn:hover { border-color:var(--spell-border,var(--gold)); transform:scale(1.08); }
+.spell-btn.on { border-color:var(--spell-border,var(--gold2)); box-shadow:0 0 20px var(--spell-glow,rgba(100,80,255,.6)); background:rgba(30,10,50,.95); }
+.spell-btn.cooling { cursor:not-allowed; opacity:.55; }
+.spell-lbl { font-size:7.5px; color:rgba(245,224,160,.8); font-family:'Cinzel',serif; margin-top:1px; letter-spacing:.5px; }
+.spell-cd {
+  position:absolute; inset:0; border-radius:12px;
+  background:rgba(0,0,0,.72); display:flex; align-items:center; justify-content:center;
+  font-size:14px; font-weight:900; color:#fff; font-family:'Cinzel',serif;
+  pointer-events:none;
+}
+.spell-uses { position:absolute; top:2px; right:4px; font-size:8px; font-weight:700; color:var(--gold2); font-family:'Cinzel',serif; }
+
+/* Spell FX overlays */
+.sfx-fire { position:absolute; pointer-events:none; z-index:80; animation:sfxFire .9s ease-out forwards; }
+@keyframes sfxFire {
+  0%  { transform:scale(0.1); opacity:1; }
+  50% { transform:scale(1.3); opacity:.9; }
+  100%{ transform:scale(2);   opacity:0; }
+}
+.sfx-frost { position:absolute; pointer-events:none; z-index:80; animation:sfxFrost 1s ease-out forwards; }
+@keyframes sfxFrost {
+  0%  { transform:scale(0.1) rotate(0deg);   opacity:1; }
+  60% { transform:scale(1.2) rotate(180deg); opacity:.9; }
+  100%{ transform:scale(1.8) rotate(360deg); opacity:0; }
+}
+.sfx-lightning { position:absolute; pointer-events:none; z-index:80; animation:sfxLightning .5s ease-out forwards; }
+@keyframes sfxLightning {
+  0%  { transform:scaleY(0); opacity:1; transform-origin:top; }
+  40% { transform:scaleY(1.2); opacity:1; }
+  100%{ transform:scaleY(1); opacity:0; }
+}
+.sfx-heal { position:absolute; pointer-events:none; z-index:80; animation:sfxHeal 1.2s ease-out forwards; }
+@keyframes sfxHeal {
+  0%  { transform:scale(0.3); opacity:1; }
+  50% { transform:scale(1.1); opacity:.95; }
+  100%{ transform:scale(1.6); opacity:0; }
+}
+.sfx-quake { position:absolute; pointer-events:none; z-index:80; animation:sfxQuake .8s ease-in-out forwards; }
+@keyframes sfxQuake {
+  0%,100% { transform:translateX(0); opacity:.8; }
+  20%     { transform:translateX(-8px); opacity:1; }
+  40%     { transform:translateX(8px);  opacity:1; }
+  60%     { transform:translateX(-5px); opacity:.9; }
+  80%     { transform:translateX(5px);  opacity:.9; }
+}
+.sfx-shadow { position:absolute; pointer-events:none; z-index:80; animation:sfxShadow 1s ease-out forwards; }
+@keyframes sfxShadow {
+  0%  { transform:scale(1) rotate(0deg); opacity:.9; }
+  100%{ transform:scale(3) rotate(30deg); opacity:0; }
+}
+
+/* Enemy wall element */
+.ewall { position:absolute; background:rgba(140,120,70,.85); border:1.5px solid rgba(100,80,40,.7); z-index:5; border-radius:3px; }
+
+/* Enemy guard unit */
+.eguard { position:absolute; font-size:18px; z-index:15; pointer-events:none; filter:drop-shadow(0 2px 5px rgba(0,0,0,.9)); }
+
+/* Spell cursor ring */
+#spell-cursor { position:absolute; pointer-events:none; z-index:90; display:none; }
+
+/* Tier badge in enemy list */
+.tier-badge { display:inline-block; padding:2px 7px; border-radius:10px; font-size:9px; font-weight:700; margin-left:5px; vertical-align:middle; }
+.tier-1 { background:#234a10; color:#a0ff60; }
+.tier-2 { background:#2a1a00; color:#ffc040; }
+.tier-3 { background:#2a0808; color:#ff7050; }
+.tier-4 { background:#100018; color:#c080ff; }
+.tier-5 { background:#050008; color:#ff40ff; text-shadow:0 0 8px #ff00ff; }
+
+.ec-locked { opacity:.4; cursor:not-allowed !important; }
+
 </style>
 </head>
 <body>
@@ -306,12 +398,16 @@ body {
       <div class="bhs-i">Détruits: <span id="bhd">0%</span></div>
     </div>
   </div>
-  <div id="bw"></div>
-  <div class="tsel">
-    <div class="tb on" id="tb-samurai" onclick="selTroop('samurai')">🥷<span class="tc" id="tc-samurai">0</span></div>
-    <div class="tb" id="tb-archer"  onclick="selTroop('archer')">🏹<span class="tc" id="tc-archer">0</span></div>
-    <div class="tb" id="tb-cavalry" onclick="selTroop('cavalry')">🐴<span class="tc" id="tc-cavalry">0</span></div>
+  <div id="bw">
+    <div id="spell-cursor"></div>
   </div>
+  <div class="tsel">
+    <div class="tb on" id="tb-samurai" onclick="selUnit('samurai')">🥷<span class="tc" id="tc-samurai">0</span></div>
+    <div class="tb" id="tb-archer"  onclick="selUnit('archer')">🏹<span class="tc" id="tc-archer">0</span></div>
+    <div class="tb" id="tb-cavalry" onclick="selUnit('cavalry')">🐴<span class="tc" id="tc-cavalry">0</span></div>
+  </div>
+  <!-- SPELLS -->
+  <div class="spells-bar" id="spells-bar"></div>
   <button class="eb-btn" onclick="endBattle()">🏳 Fin de Bataille</button>
 </div>
 
@@ -344,12 +440,230 @@ const DEFS = {
   stable:{name:'厩 Écurie',   cost:{g:240,r:140},hp:280, cavalry:2, desc:'Fournit des unités de cavalerie pour les batailles.'},
 };
 
+// Each enemy defines its own building layout and wall segments for a truly unique feel.
+// guards: enemy roaming units that patrol and attack your troops
+// wallSegs: explicit wall rectangles [{x,y,w,h}] placed around the buildings
 const ENEMIES = [
-  {name:'Clan Koga',          lvl:1, def:20, str:12, loot:{g:90,r:70},   bg:'#1a3010', sp:'👹'},
-  {name:'Forteresse Iga',     lvl:2, def:38, str:22, loot:{g:170,r:120}, bg:'#2a1810', sp:'👺'},
-  {name:'Domaine de Nara',    lvl:3, def:62, str:38, loot:{g:290,r:210}, bg:'#101830', sp:'🐉'},
-  {name:'Citadelle Satsuma',  lvl:4, def:92, str:58, loot:{g:430,r:340}, bg:'#1a0808', sp:'👿'},
-  {name:'Château de Kyoto',   lvl:5, def:135,str:85, loot:{g:640,r:500}, bg:'#080818', sp:'☠️'},
+  // ── TIER 1 ─────────────────────────────────────────────────────────────
+  {
+    name:'Village de Pêcheurs', tier:1, lvl:1, def:18, str:8, atkSpd:2800,
+    loot:{g:80,r:60}, bg:'#1a3010', sp:'🏘',
+    desc:'Un hameau de pêcheurs sans défense. Parfait pour vos premières armes.',
+    guards:0, guardStr:0,
+    layout:[
+      {type:'keep',x:300,y:130},{type:'farm',x:180,y:160},{type:'farm',x:430,y:150},
+      {type:'mine',x:310,y:230},{type:'farm',x:160,y:80},
+    ],
+    wallSegs:[],
+  },
+  {
+    name:'Clan Koga', tier:1, lvl:2, def:32, str:14, atkSpd:2400,
+    loot:{g:140,r:100}, bg:'#1e3812', sp:'👹',
+    desc:'Ninjas rustres. Une tour de guet et quelques palissades.',
+    guards:1, guardStr:10,
+    layout:[
+      {type:'keep',x:320,y:120},{type:'tower',x:200,y:90},{type:'farm',x:450,y:130},
+      {type:'farm',x:180,y:200},{type:'mine',x:390,y:220},{type:'dojo',x:290,y:210},
+    ],
+    wallSegs:[{x:260,y:70,w:130,h:8},{x:260,y:70,w:8,h:120},{x:380,y:70,w:8,h:120}],
+  },
+  {
+    name:'Fort des Bandits', tier:1, lvl:3, def:55, str:24, atkSpd:2100,
+    loot:{g:220,r:160}, bg:'#2a2010', sp:'⚔️',
+    desc:'Pillards organisés derrière des barricades en bois. Deux tours de garde.',
+    guards:2, guardStr:14,
+    layout:[
+      {type:'keep',x:310,y:110},{type:'tower',x:180,y:80},{type:'tower',x:450,y:80},
+      {type:'farm',x:200,y:190},{type:'mine',x:420,y:190},{type:'dojo',x:310,y:210},
+      {type:'market',x:140,y:145},
+    ],
+    wallSegs:[
+      {x:155,y:55,w:330,h:10},{x:155,y:55,w:10,h:175},{x:475,y:55,w:10,h:175},
+      {x:155,y:220,w:330,h:10},
+    ],
+  },
+  // ── TIER 2 ─────────────────────────────────────────────────────────────
+  {
+    name:'Forteresse Iga', tier:2, lvl:4, def:80, str:38, atkSpd:1800,
+    loot:{g:340,r:240}, bg:'#2a1810', sp:'👺',
+    desc:'Ninjas d\'élite derrière double enceinte. Tirs précis et rapides.',
+    guards:3, guardStr:22,
+    layout:[
+      {type:'keep',x:320,y:120},{type:'tower',x:190,y:80},{type:'tower',x:460,y:80},
+      {type:'tower',x:320,y:60},{type:'dojo',x:200,y:190},{type:'dojo',x:430,y:190},
+      {type:'farm',x:310,y:210},{type:'mine',x:140,y:135},{type:'mine',x:490,y:135},
+    ],
+    wallSegs:[
+      {x:155,y:50,w:335,h:9},{x:155,y:50,w:9,h:195},{x:480,y:50,w:9,h:195},{x:155,y:236,w:335,h:9},
+      {x:220,y:80,w:200,h:7},{x:220,y:80,w:7,h:100},{x:413,y:80,w:7,h:100},{x:220,y:173,w:200,h:7},
+    ],
+  },
+  {
+    name:'Domaine de Nara', tier:2, lvl:5, def:115, str:55, atkSpd:1600,
+    loot:{g:500,r:360}, bg:'#101830', sp:'🐉',
+    desc:'Seigneur féodal aguerri. Triple rangée de défenseurs.',
+    guards:4, guardStr:32,
+    layout:[
+      {type:'keep',x:340,y:100},{type:'tower',x:160,y:60},{type:'tower',x:520,y:60},
+      {type:'tower',x:250,y:80},{type:'tower',x:430,y:80},{type:'dojo',x:170,y:175},
+      {type:'dojo',x:510,y:175},{type:'farm',x:340,y:195},{type:'mine',x:260,y:210},
+      {type:'mine',x:420,y:210},{type:'stable',x:340,y:250},
+    ],
+    wallSegs:[
+      {x:130,y:30,w:425,h:9},{x:130,y:30,w:9,h:240},{x:545,y:30,w:9,h:240},{x:130,y:260,w:425,h:9},
+      {x:195,y:65,w:300,h:7},{x:195,y:65,w:7,h:145},{x:487,y:65,w:7,h:145},{x:195,y:202,w:300,h:7},
+    ],
+  },
+  {
+    name:'Citadelle d\'Osaka', tier:2, lvl:6, def:160, str:75, atkSpd:1450,
+    loot:{g:700,r:520}, bg:'#18102a', sp:'🏯',
+    desc:'Fortifications en pierre de taille. Garnison nombreuse et bien entraînée.',
+    guards:5, guardStr:44,
+    layout:[
+      {type:'keep',x:340,y:90},{type:'tower',x:160,y:50},{type:'tower',x:530,y:50},
+      {type:'tower',x:250,y:60},{type:'tower',x:430,y:60},{type:'tower',x:170,y:170},
+      {type:'tower',x:510,y:170},{type:'dojo',x:260,y:195},{type:'dojo',x:420,y:195},
+      {type:'dojo',x:340,y:215},{type:'farm',x:130,y:115},{type:'mine',x:550,y:115},
+      {type:'shrine',x:340,y:45},{type:'stable',x:200,y:240},
+    ],
+    wallSegs:[
+      {x:110,y:22,w:470,h:9},{x:110,y:22,w:9,h:255},{x:570,y:22,w:9,h:255},{x:110,y:268,w:470,h:9},
+      {x:175,y:50,w:345,h:7},{x:175,y:50,w:7,h:165},{x:511,y:50,w:7,h:165},{x:175,y:207,w:345,h:7},
+    ],
+  },
+  // ── TIER 3 ─────────────────────────────────────────────────────────────
+  {
+    name:'Clan des Ombres', tier:3, lvl:7, def:210, str:95, atkSpd:1250,
+    loot:{g:950,r:720}, bg:'#100820', sp:'🌑',
+    desc:'Assassins qui sortent de l\'ombre. Les gardes vous traquent activement.',
+    guards:7, guardStr:62,
+    layout:[
+      {type:'keep',x:350,y:100},{type:'tower',x:140,y:55},{type:'tower',x:570,y:55},
+      {type:'tower',x:230,y:65},{type:'tower',x:470,y:65},{type:'tower',x:350,y:50},
+      {type:'tower',x:140,y:180},{type:'tower',x:570,y:180},{type:'dojo',x:240,y:195},
+      {type:'dojo',x:460,y:195},{type:'dojo',x:350,y:220},{type:'mine',x:180,y:240},
+      {type:'mine',x:520,y:240},{type:'farm',x:350,y:270},{type:'shrine',x:140,y:120},
+    ],
+    wallSegs:[
+      {x:100,y:18,w:515,h:9},{x:100,y:18,w:9,h:290},{x:605,y:18,w:9,h:290},{x:100,y:298,w:515,h:9},
+      {x:165,y:42,w:385,h:7},{x:165,y:42,w:7,h:195},{x:541,y:42,w:7,h:195},{x:165,y:228,w:385,h:7},
+      {x:235,y:70,w:245,h:6},{x:235,y:70,w:6,h:115},{x:473,y:70,w:6,h:115},{x:235,y:178,w:245,h:6},
+    ],
+  },
+  {
+    name:'Citadelle Satsuma', tier:3, lvl:8, def:290, str:130, atkSpd:1100,
+    loot:{g:1280,r:960}, bg:'#1a0808', sp:'👿',
+    desc:'Armée impériale aguerrie. Tours anti-cavalerie, murs épais, gardes d\'élite.',
+    guards:8, guardStr:80,
+    layout:[
+      {type:'keep',x:360,y:95},{type:'tower',x:130,y:45},{type:'tower',x:600,y:45},
+      {type:'tower',x:215,y:55},{type:'tower',x:505,y:55},{type:'tower',x:360,y:40},
+      {type:'tower',x:130,y:175},{type:'tower',x:600,y:175},{type:'tower',x:215,y:185},
+      {type:'tower',x:505,y:185},{type:'dojo',x:270,y:210},{type:'dojo',x:450,y:210},
+      {type:'dojo',x:360,y:230},{type:'stable',x:170,y:255},{type:'stable',x:550,y:255},
+      {type:'mine',x:360,y:275},{type:'shrine',x:130,y:120},{type:'market',x:600,y:120},
+    ],
+    wallSegs:[
+      {x:90,y:10,w:555,h:10},{x:90,y:10,w:10,h:305},{x:634,y:10,w:10,h:305},{x:90,y:305,w:555,h:10},
+      {x:160,y:35,w:415,h:8},{x:160,y:35,w:8,h:205},{x:566,y:35,w:8,h:205},{x:160,y:231,w:415,h:8},
+      {x:240,y:62,w:258,h:7},{x:240,y:62,w:7,h:120},{x:490,y:62,w:7,h:120},{x:240,y:175,w:258,h:7},
+    ],
+  },
+  {
+    name:'Domaine du Shogun Noir', tier:3, lvl:9, def:380, str:168, atkSpd:980,
+    loot:{g:1700,r:1300}, bg:'#080818', sp:'🖤',
+    desc:'Seigneur de guerre légendaire. Quadruple rempart, les gardes ne dorment jamais.',
+    guards:10, guardStr:105,
+    layout:[
+      {type:'keep',x:370,y:100},{type:'tower',x:100,y:40},{type:'tower',x:640,y:40},
+      {type:'tower',x:190,y:48},{type:'tower',x:550,y:48},{type:'tower',x:370,y:38},
+      {type:'tower',x:100,y:170},{type:'tower',x:640,y:170},{type:'tower',x:190,y:180},
+      {type:'tower',x:550,y:180},{type:'tower',x:270,y:195},{type:'tower',x:470,y:195},
+      {type:'dojo',x:285,y:220},{type:'dojo',x:455,y:220},{type:'dojo',x:370,y:248},
+      {type:'stable',x:155,y:258},{type:'stable',x:585,y:258},{type:'mine',x:370,y:290},
+      {type:'shrine',x:155,y:115},{type:'market',x:585,y:115},{type:'farm',x:100,y:215},
+    ],
+    wallSegs:[
+      {x:70,y:5,w:605,h:10},{x:70,y:5,w:10,h:330},{x:663,y:5,w:10,h:330},{x:70,y:325,w:605,h:10},
+      {x:140,y:28,w:465,h:8},{x:140,y:28,w:8,h:220},{x:596,y:28,w:8,h:220},{x:140,y:240,w:465,h:8},
+      {x:215,y:52,w:315,h:7},{x:215,y:52,w:7,h:140},{x:522,y:52,w:7,h:140},{x:215,y:184,w:315,h:7},
+      {x:295,y:78,w:155,h:6},{x:295,y:78,w:6,h:75},{x:444,y:78,w:6,h:75},{x:295,y:147,w:155,h:6},
+    ],
+  },
+  // ── TIER 4 ─────────────────────────────────────────────────────────────
+  {
+    name:'Château de Kyoto', tier:4, lvl:10, def:490, str:215, atkSpd:880,
+    loot:{g:2200,r:1800}, bg:'#08080a', sp:'☠️',
+    desc:'Capitale impériale. Cinq enceintes, garnison permanente d\'élite. Un vrai enfer.',
+    guards:12, guardStr:140,
+    layout:[
+      {type:'keep',x:370,y:100},{type:'tower',x:80,y:30},{type:'tower',x:660,y:30},
+      {type:'tower',x:170,y:38},{type:'tower',x:570,y:38},{type:'tower',x:370,y:28},
+      {type:'tower',x:80,y:165},{type:'tower',x:660,y:165},{type:'tower',x:170,y:175},
+      {type:'tower',x:570,y:175},{type:'tower',x:265,y:190},{type:'tower',x:475,y:190},
+      {type:'tower',x:80,y:270},{type:'tower',x:660,y:270},{type:'dojo',x:285,y:220},
+      {type:'dojo',x:455,y:220},{type:'dojo',x:370,y:248},{type:'stable',x:155,y:118},
+      {type:'stable',x:585,y:118},{type:'mine',x:370,y:295},{type:'shrine',x:220,y:105},
+      {type:'market',x:520,y:105},{type:'farm',x:80,y:220},
+    ],
+    wallSegs:[
+      {x:55,y:0,w:640,h:10},{x:55,y:0,w:10,h:340},{x:683,y:0,w:10,h:340},{x:55,y:330,w:640,h:10},
+      {x:120,y:18,w:510,h:8},{x:120,y:18,w:8,h:230},{x:620,y:18,w:8,h:230},{x:120,y:240,w:510,h:8},
+      {x:195,y:38,w:360,h:7},{x:195,y:38,w:7,h:155},{x:547,y:38,w:7,h:155},{x:195,y:186,w:360,h:7},
+      {x:270,y:62,w:210,h:6},{x:270,y:62,w:6,h:95},{x:472,y:62,w:6,h:95},{x:270,y:151,w:210,h:6},
+      {x:320,y:84,w:110,h:5},{x:320,y:84,w:5,h:50},{x:423,y:84,w:5,h:50},{x:320,y:129,w:110,h:5},
+    ],
+  },
+  {
+    name:'Forteresse du Démon', tier:4, lvl:12, def:650, str:280, atkSpd:780,
+    loot:{g:3000,r:2500}, bg:'#1a0000', sp:'🔥',
+    desc:'Murs infernaux. Les tours crachent du feu. Vos unités fondent comme neige.',
+    guards:14, guardStr:185,
+    layout:[
+      {type:'keep',x:370,y:95},{type:'tower',x:60,y:22},{type:'tower',x:680,y:22},
+      {type:'tower',x:145,y:30},{type:'tower',x:595,y:30},{type:'tower',x:370,y:18},
+      {type:'tower',x:60,y:155},{type:'tower',x:680,y:155},{type:'tower',x:145,y:165},
+      {type:'tower',x:595,y:165},{type:'tower',x:255,y:178},{type:'tower',x:485,y:178},
+      {type:'tower',x:60,y:260},{type:'tower',x:680,y:260},{type:'tower',x:145,y:272},
+      {type:'tower',x:595,y:272},{type:'dojo',x:270,y:208},{type:'dojo',x:470,y:208},
+      {type:'dojo',x:370,y:238},{type:'stable',x:155,y:108},{type:'stable',x:585,y:108},
+      {type:'stable',x:370,y:285},{type:'shrine',x:200,y:98},{type:'shrine',x:540,y:98},
+    ],
+    wallSegs:[
+      {x:35,y:0,w:680,h:10},{x:35,y:0,w:10,h:345},{x:703,y:0,w:10,h:345},{x:35,y:332,w:680,h:10},
+      {x:95,y:12,w:560,h:8},{x:95,y:12,w:8,h:250},{x:644,y:12,w:8,h:250},{x:95,y:254,w:560,h:8},
+      {x:165,y:28,w:420,h:7},{x:165,y:28,w:7,h:170},{x:577,y:28,w:7,h:170},{x:165,y:191,w:420,h:7},
+      {x:245,y:50,w:260,h:6},{x:245,y:50,w:6,h:115},{x:498,y:50,w:6,h:115},{x:245,y:159,w:260,h:6},
+      {x:310,y:72,w:130,h:5},{x:310,y:72,w:5,h:65},{x:433,y:72,w:5,h:65},{x:310,y:131,w:130,h:5},
+    ],
+  },
+  // ── TIER 5 ─────────────────────────────────────────────────────────────
+  {
+    name:'Empire du Soleil Noir', tier:5, lvl:15, def:900, str:380, atkSpd:650,
+    loot:{g:5000,r:4000}, bg:'#000008', sp:'🌑',
+    desc:'L\'ultime défi. Des centaines de défenseurs, six enceintes impénétrables. Seul le Shogun légendaire triomphera.',
+    guards:18, guardStr:260,
+    layout:[
+      {type:'keep',x:375,y:90},{type:'tower',x:40,y:10},{type:'tower',x:710,y:10},
+      {type:'tower',x:125,y:18},{type:'tower',x:625,y:18},{type:'tower',x:375,y:8},
+      {type:'tower',x:40,y:140},{type:'tower',x:710,y:140},{type:'tower',x:125,y:152},
+      {type:'tower',x:625,y:152},{type:'tower',x:235,y:165},{type:'tower',x:515,y:165},
+      {type:'tower',x:40,y:250},{type:'tower',x:710,y:250},{type:'tower',x:125,y:262},
+      {type:'tower',x:625,y:262},{type:'tower',x:235,y:278},{type:'tower',x:515,y:278},
+      {type:'dojo',x:260,y:200},{type:'dojo',x:490,y:200},{type:'dojo',x:375,y:228},
+      {type:'stable',x:145,y:100},{type:'stable',x:605,y:100},{type:'stable',x:375,y:278},
+      {type:'shrine',x:190,y:88},{type:'shrine',x:560,y:88},{type:'mine',x:375,y:310},
+      {type:'market',x:145,y:210},{type:'market',x:605,y:210},
+    ],
+    wallSegs:[
+      {x:12,y:0,w:740,h:10},{x:12,y:0,w:10,h:355},{x:740,y:0,w:10,h:355},{x:12,y:345,w:740,h:10},
+      {x:72,y:8,w:622,h:8},{x:72,y:8,w:8,h:275},{x:682,y:8,w:8,h:275},{x:72,y:275,w:622,h:8},
+      {x:145,y:24,w:476,h:7},{x:145,y:24,w:7,h:200},{x:613,y:24,w:7,h:200},{x:145,y:217,w:476,h:7},
+      {x:220,y:42,w:326,h:6},{x:220,y:42,w:6,h:135},{x:538,y:42,w:6,h:135},{x:220,y:171,w:326,h:6},
+      {x:295,y:62,w:176,h:5},{x:295,y:62,w:5,h:82},{x:464,y:62,w:5,h:82},{x:295,y:139,w:176,h:5},
+      {x:330,y:76,w:106,h:4},{x:330,y:76,w:4,h:48},{x:430,y:76,w:4,h:48},{x:330,y:120,w:106,h:4},
+    ],
+  },
 ];
 
 // ════════════════════════════════════════════════════
@@ -1053,25 +1367,120 @@ function addXP(n) {
 // ════════════════════════════════════════════════════
 //  ATTACK MODAL
 // ════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════
+//  SPELLS DEFINITIONS
+// ════════════════════════════════════════════════════
+const SPELLS = {
+  fireball: {
+    name:'Boule de Feu', icon:'🔥', lbl:'Feu',
+    color:'--spell-glow:rgba(255,100,0,.5);--spell-border:#ff6020',
+    cdMax:18, uses:3, radius:85,
+    desc:'Inflige 160–260 dégâts dans un rayon de feu. Brûle même les murs.',
+    cast(x,y){
+      spawnSpellFX(x,y,85,'sfx-fire','🔥');
+      aoeBuildings(x,y,85,160,260);
+      spawnSparks(x,y); spawnSparks(x+20,y-20); spawnSparks(x-20,y+15);
+    },
+  },
+  frost: {
+    name:'Gel Impérial', icon:'❄️', lbl:'Givre',
+    color:'--spell-glow:rgba(80,180,255,.5);--spell-border:#60c8ff',
+    cdMax:24, uses:2, radius:110,
+    desc:'Gèle tous les ennemis dans la zone — tirs réduits de 65% pendant 7s.',
+    cast(x,y){
+      spawnSpellFX(x,y,110,'sfx-frost','❄️');
+      aoeBuildings(x,y,110,30,60);
+      freezeArea(x,y,110,7000);
+    },
+  },
+  lightning: {
+    name:'Foudre du Ciel', icon:'⚡', lbl:'Foudre',
+    color:'--spell-glow:rgba(255,255,80,.5);--spell-border:#ffee40',
+    cdMax:12, uses:5, radius:38,
+    desc:'Éclair ciblé — 380–560 dégâts directs sur un bâtiment.',
+    cast(x,y){
+      spawnSpellFX(x,y,38,'sfx-lightning','⚡');
+      aoeBuildings(x,y,60,380,560);
+    },
+  },
+  heal: {
+    name:'Soin du Moine', icon:'💚', lbl:'Soin',
+    color:'--spell-glow:rgba(60,255,100,.5);--spell-border:#40ff80',
+    cdMax:22, uses:3, radius:100,
+    desc:'Soigne toutes les unités alliées dans la zone (+60 PV chacune).',
+    cast(x,y){
+      spawnSpellFX(x,y,100,'sfx-heal','💚');
+      healArea(x,y,100,60);
+    },
+  },
+  quake: {
+    name:'Tremblement', icon:'🌋', lbl:'Séisme',
+    color:'--spell-glow:rgba(180,100,40,.5);--spell-border:#c06020',
+    cdMax:30, uses:2, radius:140,
+    desc:'Chaque bâtiment dans le rayon perd 25% de ses PV max restants.',
+    cast(x,y){
+      spawnSpellFX(x,y,140,'sfx-quake','🌋');
+      quakeArea(x,y,140);
+    },
+  },
+  shadow: {
+    name:'Voile des Ombres', icon:'🌑', lbl:'Ombre',
+    color:'--spell-glow:rgba(100,0,180,.5);--spell-border:#8020c0',
+    cdMax:38, uses:2, radius:9999,
+    desc:'Rend toutes vos unités invincibles pendant 5 secondes.',
+    cast(x,y){
+      spawnSpellFX(x,y,120,'sfx-shadow','🌑');
+      invincibleAll(5000);
+    },
+  },
+};
+
+// ════════════════════════════════════════════════════
+//  ATTACK MODAL
+// ════════════════════════════════════════════════════
+const TIER_LABEL=['','Facile','Intermédiaire','Difficile','Brutal','Légendaire'];
+const TIER_COL  =['','#a0ff60','#ffc040','#ff7050','#c080ff','#ff40ff'];
+
 function openAtkModal() {
   const atkStr = G.troops*8 + G.attack;
-  const cards = ENEMIES.map((e,i) => {
-    const pct = Math.min(98, Math.round(atkStr/e.def*100));
-    const col = pct>=70?'#80ff60':pct>=40?'#f0c040':'#ff6060';
-    return `<div class="ec" onclick="launchBattle(${i})">
-      <div class="en-th" style="background:${e.bg}">${e.sp}</div>
-      <div style="flex:1">
-        <div class="en-nm">${e.name}</div>
-        <div class="en-st">Niveau ${e.lvl} · Défense: ${e.def} · Puissance: ${e.str}</div>
-        <div class="en-lt">💰 Butin: ${e.loot.g}🪙 ${e.loot.r}🌾</div>
-        <div style="color:${col};font-size:10px;margin-top:3px">Victoire estimée: ~${pct}%</div>
-      </div>
-      <button class="ab-sm">⚔ Attaquer</button>
-    </div>`;
-  }).join('');
-  showM(`<h2>⚔ Choisir une Cible</h2>
-    <p>Votre force d'attaque: <strong style="color:var(--gold2)">${atkStr}</strong> (${G.troops} guerriers + ${G.attack} att.)</p>
-    <div style="margin-top:12px">${cards}</div>`);
+  const tiers = {};
+  ENEMIES.forEach((e,i)=>{
+    if(!tiers[e.tier]) tiers[e.tier]=[];
+    tiers[e.tier].push({e,i});
+  });
+
+  let html = `<h2>⚔ Choisir une Cible</h2>
+    <p>Force d'attaque: <strong style="color:var(--gold2)">${atkStr}</strong> — Sorts disponibles: 🔥❄️⚡💚🌋🌑</p>`;
+
+  Object.entries(tiers).forEach(([tier,list])=>{
+    html += `<div style="margin:10px 0 5px;font-size:9px;letter-spacing:2px;color:${TIER_COL[tier]};font-family:Cinzel,serif;text-transform:uppercase;border-bottom:1px solid rgba(255,255,255,.08);padding-bottom:4px">
+      ── Tier ${tier}: ${TIER_LABEL[tier]} ──</div>`;
+    list.forEach(({e,i})=>{
+      const pct = Math.min(99, Math.round(atkStr / e.def * 100));
+      const col = pct>=70?'#80ff60':pct>=40?'#f0c040':'#ff5050';
+      const lock = G.level < e.lvl-1;
+      html += `<div class="ec${lock?' ec-locked':''}" onclick="${lock?'':`launchBattle(${i})`}" style="${lock?'opacity:.4;cursor:not-allowed':''}">
+        <div class="en-th" style="background:${e.bg};font-size:28px">${e.sp}</div>
+        <div style="flex:1">
+          <div class="en-nm">${e.name}
+            <span class="tier-badge tier-${e.tier}">${TIER_LABEL[e.tier]}</span>
+            ${lock?`<span style="font-size:9px;color:#ff6060;margin-left:4px">🔒 Niveau ${e.lvl-1} requis</span>`:''}
+          </div>
+          <div class="en-st" style="margin-top:3px">
+            Nv.${e.lvl} · Déf: <strong style="color:#ff9070">${e.def}</strong> · Puissance: <strong style="color:#ff7050">${e.str}</strong>
+            · Tours: ${e.layout.filter(b=>b.type==='tower').length} · Enceintes: ${e.wallSegs.length > 0 ? Math.floor(e.wallSegs.length/4) : 0}
+          </div>
+          <div style="color:rgba(245,224,160,.5);font-size:9px;font-family:'Noto Serif JP';margin-top:2px">${e.desc}</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+            <div class="en-lt">💰 ${e.loot.g}🪙 ${e.loot.r}🌾</div>
+            <div style="color:${col};font-size:10px">Victoire: ~${pct}%</div>
+          </div>
+        </div>
+        ${lock?'':'<button class="ab-sm">⚔</button>'}
+      </div>`;
+    });
+  });
+  showM(html);
 }
 
 // ════════════════════════════════════════════════════
@@ -1082,63 +1491,413 @@ let BT = null;
 function launchBattle(ei) {
   closeM();
   const en = ENEMIES[ei];
-  const archerCount  = G.buildings.filter(b=>b.type==='dojo').length * 3;
-  const cavCount     = G.buildings.filter(b=>b.type==='stable').length * 2;
+  const archerCount = G.buildings.filter(b=>b.type==='dojo').length * 3;
+  const cavCount    = G.buildings.filter(b=>b.type==='stable').length * 2;
+
+  // Build spell state: each spell gets fresh uses + cooldown timer
+  const spellState = {};
+  Object.entries(SPELLS).forEach(([key,sp])=>{
+    spellState[key] = { uses: sp.uses, cd: 0, timer: null };
+  });
+
   BT = {
     en,
-    troopCounts: { samurai:G.troops, archer:archerCount, cavalry:cavCount },
+    troopCounts: { samurai: G.troops, archer: archerCount, cavalry: cavCount },
     eBuildings: genEnemyBuildings(en),
+    eWalls: genEnemyWalls(en),
+    eGuards: [],
     units: [], selTroop:'samurai',
-    destroyed:0, total:0, ended:false, eatk:null,
+    selSpell: null,
+    spells: spellState,
+    destroyed:0, total:0, ended:false, eatk:null, guardTick:null,
   };
-  BT.total = BT.eBuildings.length;
+  BT.total = BT.eBuildings.length + BT.eWalls.length;
+
   document.getElementById('btitle').textContent = `⚔ ${en.name}`;
-  document.getElementById('bht').textContent = G.troops;
-  document.getElementById('bhe').textContent = BT.total;
+  document.getElementById('bhe').textContent = BT.eBuildings.filter(b=>b.alive).length;
   document.getElementById('bhd').textContent = '0%';
   updateTCs();
   renderBattle();
+  renderSpellsBar();
   document.getElementById('bscr').classList.add('open');
-  BT.eatk = setInterval(enemyStrike, 1600);
+  BT.eatk     = setInterval(enemyStrike, en.atkSpd);
+  BT.guardTick= setInterval(updateGuards, 220);
+  spawnGuards(en);
   addLog(`⚔ Bataille: ${en.name}`);
 }
 
+// ── Build unique enemy village ──
 function genEnemyBuildings(en) {
-  const types = ['keep','tower','tower','farm','mine','dojo','farm','mine','tower'];
-  const pos   = [
-    {x:280,y:55},{x:440,y:75},{x:160,y:130},{x:330,y:120},{x:490,y:100},
-    {x:570,y:175},{x:200,y:205},{x:400,y:195},{x:110,y:75},
-  ];
-  return types.map((t,i) => ({
-    id:i, type:t,
-    x:pos[i].x, y:pos[i].y,
-    hp:  DEFS[t].hp * (0.7 + en.lvl*.15),
-    maxHp: DEFS[t].hp * (0.7 + en.lvl*.15),
-    alive:true,
+  return en.layout.map((b,i) => {
+    const mult = 0.75 + en.lvl * 0.14;
+    const hp = Math.floor(DEFS[b.type].hp * mult);
+    return { id:i, type:b.type, x:b.x, y:b.y, hp, maxHp:hp, alive:true };
+  });
+}
+
+function genEnemyWalls(en) {
+  if (!en.wallSegs || !en.wallSegs.length) return [];
+  const hpBase = 80 + en.lvl * 60;
+  return en.wallSegs.map((w,i) => ({
+    id: 'w'+i, x:w.x, y:w.y, w:w.w, h:w.h,
+    hp: hpBase, maxHp: hpBase, alive: true,
   }));
 }
 
+// ── Spawn enemy guard units ──
+function spawnGuards(en) {
+  if (!en.guards) return;
+  const bw = document.getElementById('bw');
+  for (let i=0; i<en.guards; i++) {
+    const guard = {
+      id: 'g'+i,
+      x: 100 + Math.random()*580,
+      y: 40  + Math.random()*240,
+      hp: 40 + en.lvl*8, maxHp: 40+en.lvl*8,
+      atk: en.guardStr,
+      spd: 1.1 + en.tier*.3,
+      range: 28,
+      dead: false,
+      patrol: { x: 200+Math.random()*350, y: 60+Math.random()*200 },
+    };
+    BT.eGuards.push(guard);
+    const el = document.createElement('div');
+    el.className = 'eguard'; el.id = 'gu'+guard.id;
+    el.textContent = ['⚔','🗡','🪃','🔱'][i%4];
+    el.style.cssText = `left:${guard.x}px;top:${guard.y}px;color:#ff6040;
+      text-shadow:0 0 6px rgba(255,80,0,.8);`;
+    bw.appendChild(el);
+  }
+}
+
+function updateGuards() {
+  if (!BT || BT.ended) return;
+  const liveUnits = BT.units.filter(u => !u.dead);
+  BT.eGuards.filter(g => !g.dead).forEach(guard => {
+    // Find closest player unit
+    const tgt = liveUnits.reduce((best,u) => {
+      const d = Math.hypot(u.x-guard.x, u.y-guard.y);
+      return (!best || d < Math.hypot(best.x-guard.x,best.y-guard.y)) ? u : best;
+    }, null);
+
+    if (tgt) {
+      const dist = Math.hypot(tgt.x-guard.x, tgt.y-guard.y);
+      if (dist <= guard.range+12) {
+        // Attack player unit
+        const dmg = Math.floor(guard.atk * (.08 + Math.random()*.06));
+        if (!tgt.invincible) {
+          tgt.hp -= dmg;
+          showDP(tgt.x, tgt.y-8, dmg, '#ff6040');
+          if (tgt.hp <= 0) {
+            tgt.dead = true; clearInterval(tgt.iv);
+            const el = document.getElementById('u'+tgt.id);
+            if (el) { el.style.opacity='0'; setTimeout(()=>el.remove(),300); }
+          }
+        }
+      } else {
+        // Chase player
+        const a = Math.atan2(tgt.y-guard.y, tgt.x-guard.x);
+        guard.x += Math.cos(a)*guard.spd;
+        guard.y += Math.sin(a)*guard.spd;
+      }
+    } else {
+      // Patrol
+      const dx = guard.patrol.x-guard.x, dy = guard.patrol.y-guard.y;
+      const d = Math.sqrt(dx*dx+dy*dy);
+      if (d > 5) {
+        guard.x += (dx/d)*guard.spd*.6;
+        guard.y += (dy/d)*guard.spd*.6;
+      } else {
+        guard.patrol = { x: 100+Math.random()*560, y: 30+Math.random()*260 };
+      }
+    }
+    const el = document.getElementById('gu'+guard.id);
+    if (el) el.style.cssText=`left:${guard.x-10}px;top:${guard.y-10}px;
+      color:#ff6040;text-shadow:0 0 6px rgba(255,80,0,.8);
+      font-size:18px;position:absolute;z-index:15;pointer-events:none;filter:drop-shadow(0 2px 5px rgba(0,0,0,.9));`;
+  });
+}
+
+// ── Render enemy village ──
 function renderBattle() {
   const bw = document.getElementById('bw');
-  bw.querySelectorAll('.be').forEach(e=>e.remove());
+  bw.querySelectorAll('.be,.ewall').forEach(e=>e.remove());
   if (!BT) return;
+
+  // Draw enemy walls first
+  BT.eWalls.forEach(w => {
+    if (!w.alive) return;
+    const el = document.createElement('div');
+    el.className='ewall'; el.id='ew'+w.id;
+    const hp = w.hp/w.maxHp;
+    const alpha = .55 + hp*.3;
+    el.style.cssText=`left:${w.x}px;top:${w.y}px;width:${w.w}px;height:${w.h}px;
+      background:rgba(140,120,70,${alpha});border:${Math.max(1,w.h<14?2:3)}px solid rgba(100,80,40,.8);
+      box-shadow:inset 0 1px 0 rgba(255,240,180,.15);`;
+    el.addEventListener('click', ev => {
+      ev.stopPropagation();
+      if (BT && !BT.ended) hitWall(w, 1);
+    });
+    bw.appendChild(el);
+  });
+
+  // Draw buildings
   BT.eBuildings.forEach(b => {
     if (!b.alive) return;
-    const el=document.createElement('div');
+    const el = document.createElement('div');
     el.className='be'; el.id='be'+b.id;
     el.style.cssText=`left:${b.x}px;top:${b.y}px`;
-    const hp=b.hp/b.maxHp;
-    const hc=hp>.6?'#40e820':hp>.3?'#e08020':'#e02020';
+    const hp = b.hp/b.maxHp;
+    const hc = hp>.6?'#40e820':hp>.3?'#e08020':'#e02020';
     el.innerHTML=`
       <canvas width="72" height="72" id="bec${b.id}"></canvas>
-      <div style="width:62px;height:6px;background:rgba(0,0,0,.65);border-radius:3px;margin-top:2px;overflow:hidden;border:1px solid rgba(0,0,0,.4)">
-        <div id="ehp${b.id}" style="width:${hp*100}%;height:100%;background:${hc};border-radius:3px;transition:width .3s"></div>
+      <div style="width:62px;height:6px;background:rgba(0,0,0,.65);border-radius:3px;margin-top:2px;overflow:hidden">
+        <div id="ehp${b.id}" style="width:${hp*100}%;height:100%;background:${hc};border-radius:3px;transition:width .25s"></div>
       </div>`;
-    el.addEventListener('click', ev => { ev.stopPropagation(); if(BT&&!BT.ended) dropTroop(b.x+25,b.y+25,b.id); });
+    el.addEventListener('click', ev => {
+      ev.stopPropagation();
+      if (!BT||BT.ended) return;
+      if (BT.selSpell) { castSpell(ev.clientX - document.getElementById('bw').getBoundingClientRect().left, ev.clientY - document.getElementById('bw').getBoundingClientRect().top); }
+      else { dropTroop(b.x+25, b.y+25, b.id); }
+    });
     bw.appendChild(el);
-    // Draw mini building on its own canvas
     drawMiniBuilding(b.type, document.getElementById('bec'+b.id));
   });
+}
+
+// ── Render Spells Bar ──
+function renderSpellsBar() {
+  const bar = document.getElementById('spells-bar');
+  bar.innerHTML = '';
+  Object.entries(SPELLS).forEach(([key, sp]) => {
+    const state = BT.spells[key];
+    const btn = document.createElement('div');
+    btn.className = 'spell-btn';
+    btn.id = 'sbtn-'+key;
+    btn.style.cssText = sp.color;
+    btn.title = `${sp.name}: ${sp.desc}`;
+    btn.innerHTML = `<div style="font-size:24px">${sp.icon}</div>
+      <div class="spell-lbl">${sp.lbl}</div>
+      <div class="spell-uses" id="suses-${key}">${state.uses}</div>
+      <div class="spell-cd" id="scd-${key}" style="display:none">0</div>`;
+    btn.onclick = () => toggleSpell(key);
+    bar.appendChild(btn);
+  });
+}
+
+function toggleSpell(key) {
+  if (!BT || BT.ended) return;
+  const state = BT.spells[key];
+  if (state.uses <= 0) { notify('⚠ Plus d\'utilisations pour ce sort !'); return; }
+  if (state.cd > 0)    { notify(`⏳ Recharge: ${state.cd}s`); return; }
+
+  if (BT.selSpell === key) {
+    // Deselect
+    BT.selSpell = null;
+    document.querySelectorAll('.spell-btn').forEach(b => b.classList.remove('on'));
+    document.getElementById('bw').style.cursor = 'crosshair';
+    hideCursorRing();
+  } else {
+    BT.selSpell = key;
+    document.querySelectorAll('.spell-btn').forEach(b => b.classList.remove('on'));
+    document.getElementById('sbtn-'+key).classList.add('on');
+    document.getElementById('bw').style.cursor = 'cell';
+    showCursorRing(SPELLS[key].radius, SPELLS[key].color);
+    notify(`✨ ${SPELLS[key].name} sélectionné — cliquez pour lancer !`);
+  }
+}
+
+// ── Spell cursor ring (follows mouse) ──
+let _cursorRingColor = 'rgba(255,200,80,.7)';
+let _cursorRingRadius = 80;
+
+function showCursorRing(r, colorStyle) {
+  _cursorRingRadius = r;
+  // Extract border color from the CSS variable string e.g. "--spell-border:#ff6020"
+  const m = colorStyle.match(/--spell-border:\s*([^;,"']+)/);
+  _cursorRingColor = m ? m[1].trim() : 'rgba(255,200,80,.7)';
+  document.getElementById('spell-cursor').style.display = 'block';
+}
+function hideCursorRing() {
+  document.getElementById('spell-cursor').style.display = 'none';
+}
+
+document.getElementById('bw').addEventListener('mousemove', e => {
+  if (!BT || !BT.selSpell) return;
+  const r = document.getElementById('bw').getBoundingClientRect();
+  const mx = e.clientX - r.left, my = e.clientY - r.top;
+  const ring = document.getElementById('spell-cursor');
+  const rd = Math.min(_cursorRingRadius, 120);
+  ring.style.cssText = `
+    left:${mx-rd}px; top:${my-rd}px;
+    width:${rd*2}px; height:${rd*2}px;
+    border:2px dashed ${_cursorRingColor};
+    border-radius:50%;
+    box-shadow:0 0 18px ${_cursorRingColor};
+    background:rgba(255,255,255,0.04);
+    display:block; pointer-events:none; z-index:90; position:absolute;
+  `;
+});
+
+function castSpell(x, y) {
+  if (!BT || !BT.selSpell) return;
+  const key = BT.selSpell;
+  const state = BT.spells[key];
+  if (state.uses<=0 || state.cd>0) return;
+
+  SPELLS[key].cast(x, y);
+  state.uses--;
+  document.getElementById('suses-'+key).textContent = state.uses;
+  if (state.uses <= 0) {
+    document.getElementById('sbtn-'+key).classList.add('cooling');
+    document.getElementById('suses-'+key).textContent = '0';
+  }
+
+  // Start cooldown
+  state.cd = SPELLS[key].cdMax;
+  const cdEl = document.getElementById('scd-'+key);
+  cdEl.style.display = 'flex'; cdEl.textContent = state.cd;
+  if (state.timer) clearInterval(state.timer);
+  state.timer = setInterval(()=>{
+    state.cd--;
+    if (cdEl) cdEl.textContent = state.cd;
+    if (state.cd <= 0) {
+      clearInterval(state.timer); state.timer = null;
+      if (cdEl) cdEl.style.display = 'none';
+      if (state.uses > 0) document.getElementById('sbtn-'+key)?.classList.remove('cooling');
+    }
+  }, 1000);
+
+  // Deselect spell
+  BT.selSpell = null;
+  document.querySelectorAll('.spell-btn').forEach(b=>b.classList.remove('on'));
+  document.getElementById('bw').style.cursor = 'crosshair';
+  hideCursorRing();
+}
+
+// ── Spell effect implementations ──
+function spawnSpellFX(x, y, r, cssClass, emoji) {
+  const bw = document.getElementById('bw');
+  const el = document.createElement('div');
+  el.className = cssClass;
+  const sz = Math.min(r*2, 240);
+  el.style.cssText = `left:${x-sz/2}px;top:${y-sz/2}px;width:${sz}px;height:${sz}px;
+    font-size:${sz*.55}px;display:flex;align-items:center;justify-content:center;
+    border-radius:50%;pointer-events:none;`;
+  el.textContent = emoji;
+  bw.appendChild(el);
+  setTimeout(()=>el.remove(), 1200);
+}
+
+function aoeBuildings(x, y, r, minDmg, maxDmg) {
+  BT.eBuildings.filter(b=>b.alive).forEach(b => {
+    const cx=b.x+35, cy=b.y+35;
+    if (Math.hypot(cx-x, cy-y) <= r) {
+      const dmg = minDmg + Math.floor(Math.random()*(maxDmg-minDmg));
+      b.hp -= dmg;
+      showDP(b.x+10, b.y, dmg, '#ff9020');
+      updateEHP(b);
+      if (b.hp <= 0) destroyEBuilding(b);
+    }
+  });
+  // Also hit walls in range
+  BT.eWalls.filter(w=>w.alive).forEach(w => {
+    const cx=w.x+w.w/2, cy=w.y+w.h/2;
+    if (Math.hypot(cx-x, cy-y) <= r+30) hitWall(w, 0.6);
+  });
+  // Hit guards
+  BT.eGuards.filter(g=>!g.dead).forEach(g => {
+    if (Math.hypot(g.x-x, g.y-y) <= r) {
+      const dmg = Math.floor((minDmg+maxDmg)/2 * .4);
+      g.hp -= dmg;
+      showDP(g.x, g.y, dmg, '#ff9020');
+      if (g.hp <= 0) killGuard(g);
+    }
+  });
+}
+
+function freezeArea(x, y, r, duration) {
+  const towers = BT.eBuildings.filter(b=>b.alive&&b.type==='tower');
+  towers.forEach(b => {
+    const cx=b.x+35, cy=b.y+35;
+    if (Math.hypot(cx-x,cy-y) <= r) {
+      b._frozenUntil = Date.now()+duration;
+      const el=document.getElementById('be'+b.id);
+      if (el) { el.style.filter='hue-rotate(170deg) brightness(1.4)'; setTimeout(()=>{if(el)el.style.filter='';}, duration); }
+    }
+  });
+  BT.eGuards.filter(g=>!g.dead).forEach(g => {
+    if (Math.hypot(g.x-x,g.y-y) <= r) {
+      g._frozenUntil = Date.now()+duration;
+      const el=document.getElementById('gu'+g.id);
+      if(el){el.style.filter='hue-rotate(170deg) brightness(1.5)';setTimeout(()=>{if(el)el.style.filter='';},duration);}
+    }
+  });
+  notify('❄️ Zone gelée ! Tours et gardes ralentis.');
+}
+
+function healArea(x, y, r, amount) {
+  let count=0;
+  BT.units.filter(u=>!u.dead).forEach(u => {
+    if (Math.hypot(u.x-x, u.y-y) <= r) {
+      u.hp = Math.min(u.hp + amount, u.maxHp + amount);
+      showDP(u.x, u.y-8, '+'+amount, '#40ff80');
+      count++;
+    }
+  });
+  if (count) notify(`💚 ${count} unité(s) soignées !`);
+  else notify('💚 Aucune unité dans la zone de soin.');
+}
+
+function quakeArea(x, y, r) {
+  BT.eBuildings.filter(b=>b.alive).forEach(b => {
+    const cx=b.x+35, cy=b.y+35;
+    if (Math.hypot(cx-x,cy-y) <= r) {
+      const dmg = Math.floor(b.hp * .25);
+      b.hp -= dmg;
+      showDP(b.x+10, b.y, dmg, '#e06020');
+      updateEHP(b);
+      if (b.hp <= 0) destroyEBuilding(b);
+    }
+  });
+  BT.eWalls.filter(w=>w.alive).forEach(w=>{
+    const cx=w.x+w.w/2, cy=w.y+w.h/2;
+    if (Math.hypot(cx-x,cy-y) <= r+30) hitWall(w, 0.4);
+  });
+}
+
+function invincibleAll(duration) {
+  BT.units.filter(u=>!u.dead).forEach(u => {
+    u.invincible = true;
+    const el=document.getElementById('u'+u.id);
+    if(el){el.style.filter='drop-shadow(0 0 12px #a040ff) brightness(1.4)';}
+    setTimeout(()=>{ u.invincible=false; const el2=document.getElementById('u'+u.id); if(el2)el2.style.filter=''; }, duration);
+  });
+  notify('🌑 Vos unités sont invincibles pendant 5s !');
+}
+
+function hitWall(w, dmgMult=1) {
+  const dmg = Math.floor(w.maxHp * 0.18 * dmgMult);
+  w.hp -= dmg;
+  const el = document.getElementById('ew'+w.id);
+  if (el) {
+    const hp = Math.max(0, w.hp/w.maxHp);
+    el.style.opacity = .4 + hp*.6;
+    el.style.background = `rgba(${Math.floor(140+hp*-40)},${Math.floor(120-hp*40)},${Math.floor(70-hp*30)},${.55+hp*.3})`;
+    if (w.hp <= 0) {
+      w.alive=false; BT.destroyed++; updateBHUD();
+      el.style.transition='opacity .4s,transform .4s';
+      el.style.opacity='0'; el.style.transform='scale(.4)';
+      setTimeout(()=>el.remove(),400);
+    }
+  }
+}
+
+function killGuard(g) {
+  g.dead = true;
+  spawnSparks(g.x, g.y);
+  const el = document.getElementById('gu'+g.id);
+  if (el) { el.style.opacity='0'; setTimeout(()=>el.remove(),300); }
 }
 
 // ── Draw mini building on a given canvas element ──
@@ -1146,15 +1905,12 @@ function drawMiniBuilding(type, canvasEl) {
   if (!canvasEl) return;
   const mc = canvasEl.getContext('2d');
   mc.clearRect(0,0,72,72);
-  // Temporarily swap global C to draw on mini canvas
-  const savedC = C;
-  C = mc;
+  const savedC = C; C = mc;
   const x=36, y=64;
   switch(type) {
     case 'keep':
       box(x,y,38,16,10,'#9080a0','#606080','#a898b0');
-      pagoda(x,y-18,34,2);
-      break;
+      pagoda(x,y-18,34,2); break;
     case 'tower':
       box(x,y,20,8,5,'#888878','#585850','#a8a898');
       box(x,y-8,14,34,10,'#707868','#484840','#909888');
@@ -1165,8 +1921,7 @@ function drawMiniBuilding(type, canvasEl) {
       mc.fillStyle='#58c030';
       mc.beginPath();mc.moveTo(x-22,y-4);mc.lineTo(x,y+8);mc.lineTo(x+22,y-4);mc.lineTo(x,y-16);mc.closePath();mc.fill();
       box(x,y-6,20,12,8,'#c89050','#906028','#e0b070');
-      roofTri(x,y-18,24,10,'#9a2808','#cc3810');
-      break;
+      roofTri(x,y-18,24,10,'#9a2808','#cc3810'); break;
     case 'mine':
       box(x,y,24,12,8,'#888898','#505868','#a8a8b8');
       box(x,y-12,18,16,10,'#9098a8','#606878','#b0b8c8');
@@ -1175,37 +1930,53 @@ function drawMiniBuilding(type, canvasEl) {
       break;
     case 'dojo':
       box(x,y,32,14,10,'#8a7060','#604838','#aa9070');
-      pagoda(x,y-16,30,1);
-      break;
+      pagoda(x,y-16,30,1); break;
+    case 'shrine':
+      mc.fillStyle='#cc3020'; mc.fillRect(x-18,y-30,8,24); mc.fillRect(x+10,y-30,8,24);
+      box(x,y-30,48,6,4,'#cc3020','#902010','#e04030'); break;
+    case 'market':
+      box(x,y,34,14,10,'#c07830','#904820','#e09840');
+      mc.fillStyle='#cc3020'; mc.beginPath();mc.moveTo(x-24,y-14);mc.lineTo(x+24,y-14);mc.lineTo(x+28,y-8);mc.lineTo(x-28,y-8);mc.closePath();mc.fill(); break;
+    case 'stable':
+      box(x,y,36,12,9,'#a06830','#705010','#c88840');
+      roofTri(x,y-12,40,12,'#8a3010','#aa4018'); break;
     default:
       box(x,y,26,12,8,'#c07030','#904020','#e09040');
       roofTri(x,y-12,28,10,'#8a2010','#aa3018');
   }
-  C = savedC; // restore
+  C = savedC;
 }
 
-// ── Troop selection ──
-function selTroop(t) {
+// ── Select troop type (or deselect spell) ──
+function selUnit(t) {
   if(!BT) return;
-  BT.selTroop=t;
+  BT.selTroop=t; BT.selSpell=null;
+  document.querySelectorAll('.spell-btn').forEach(b=>b.classList.remove('on'));
   document.querySelectorAll('.tb').forEach(b=>b.classList.remove('on'));
   document.getElementById('tb-'+t).classList.add('on');
+  document.getElementById('bw').style.cursor='crosshair';
+  hideCursorRing();
 }
 
 function updateTCs() {
   if(!BT) return;
-  const total=Object.values(BT.troopCounts).reduce((s,v)=>s+v,0);
+  const total = Object.values(BT.troopCounts).reduce((s,v)=>s+v,0);
   document.getElementById('tc-samurai').textContent = BT.troopCounts.samurai;
   document.getElementById('tc-archer').textContent  = BT.troopCounts.archer;
   document.getElementById('tc-cavalry').textContent = BT.troopCounts.cavalry;
   document.getElementById('bht').textContent = total;
 }
 
-// ── Deploy troop at position ──
+// ── Click on battlefield ──
 document.getElementById('bw').addEventListener('click', e => {
   if (!BT||BT.ended) return;
-  const r=e.currentTarget.getBoundingClientRect();
-  dropTroop(e.clientX-r.left, e.clientY-r.top, null);
+  const r = e.currentTarget.getBoundingClientRect();
+  const x = e.clientX-r.left, y = e.clientY-r.top;
+  if (BT.selSpell) {
+    castSpell(x, y);
+  } else {
+    dropTroop(x, y, null);
+  }
 });
 
 function dropTroop(x, y, targetId) {
@@ -1215,21 +1986,21 @@ function dropTroop(x, y, targetId) {
   BT.troopCounts[t]--;
   updateTCs();
 
-  const ICONS  = {samurai:'🥷', archer:'🏹', cavalry:'🐴'};
-  const STATS  = {
-    samurai:{hp:70, atk:16, range:30, spd:2.8, atkSpd:180},
-    archer: {hp:45, atk:20, range:90, spd:1.5, atkSpd:250},
-    cavalry:{hp:90, atk:28, range:32, spd:5.0, atkSpd:220},
+  const ICONS = {samurai:'🥷', archer:'🏹', cavalry:'🐴'};
+  const STATS = {
+    samurai:{hp:70, maxHp:70, atk:16, range:30, spd:2.8, atkSpd:180},
+    archer: {hp:45, maxHp:45, atk:22, range:95, spd:1.5, atkSpd:240},
+    cavalry:{hp:95, maxHp:95, atk:30, range:34, spd:5.2, atkSpd:210},
   };
   const s=STATS[t];
-  const unit={id:Math.random(), type:t, x, y, targetId, dead:false, ...s, lastAtk:0};
+  const unit={id:Math.random(), type:t, x, y, targetId, dead:false, invincible:false, ...s, lastAtk:0};
   BT.units.push(unit);
 
   const bw=document.getElementById('bw');
   const el=document.createElement('div');
   el.className='wu'; el.id='u'+unit.id;
   el.textContent=ICONS[t];
-  el.style.cssText=`left:${x-12}px;top:${y-12}px;font-size:${t==='cavalry'?'28px':'22px'};transition:left .22s,top .22s`;
+  el.style.cssText=`left:${x-12}px;top:${y-12}px;font-size:${t==='cavalry'?'28px':'22px'};transition:left .2s,top .2s;position:absolute;`;
   bw.appendChild(el);
 
   unit.iv=setInterval(()=>unitTick(unit), 160);
@@ -1237,10 +2008,34 @@ function dropTroop(x, y, targetId) {
 
 function unitTick(unit) {
   if (!BT||BT.ended) { clearInterval(unit.iv); return; }
+  // Check frozen status of nearby walls (if blocked by a wall we attack it)
   const alive=BT.eBuildings.filter(b=>b.alive);
-  if (!alive.length) { clearInterval(unit.iv); checkWin(); return; }
+  if (!alive.length && !BT.eWalls.some(w=>w.alive) && !BT.eGuards.some(g=>!g.dead)) {
+    clearInterval(unit.iv); checkWin(); return;
+  }
 
-  // Find target: prefer specified, else closest
+  // Find wall blocking path to target
+  const wallTarget = findBlockingWall(unit);
+  if (wallTarget) {
+    const dist = Math.hypot(unit.x-(wallTarget.x+wallTarget.w/2), unit.y-(wallTarget.y+wallTarget.h/2));
+    if (dist <= unit.range+20) {
+      const now=Date.now();
+      if (now-unit.lastAtk >= unit.atkSpd) {
+        unit.lastAtk=now;
+        const dmg = unit.atk+Math.floor(Math.random()*8);
+        wallTarget.hp -= dmg;
+        showDP(wallTarget.x+wallTarget.w/2, wallTarget.y-5, dmg, '#e0c040');
+        hitWallDirect(wallTarget, dmg);
+      }
+      return;
+    } else {
+      const tx=wallTarget.x+wallTarget.w/2, ty=wallTarget.y+wallTarget.h/2;
+      const a=Math.atan2(ty-unit.y, tx-unit.x);
+      unit.x+=Math.cos(a)*unit.spd; unit.y+=Math.sin(a)*unit.spd;
+      moveUnit(unit); return;
+    }
+  }
+
   let tgt = unit.targetId!=null ? alive.find(b=>b.id===unit.targetId) : null;
   if (!tgt) {
     tgt = alive.reduce((best,b) => {
@@ -1250,35 +2045,81 @@ function unitTick(unit) {
   }
   if (!tgt) return;
 
-  const tx=tgt.x+30, ty=tgt.y+30;
+  const tx=tgt.x+35, ty=tgt.y+35;
   const dist=Math.hypot(unit.x-tx, unit.y-ty);
 
   if (dist<=unit.range) {
-    // Attack
     const now=Date.now();
     if (now-unit.lastAtk >= unit.atkSpd) {
       unit.lastAtk=now;
       const dmg=unit.atk+Math.floor(Math.random()*10);
       tgt.hp-=dmg;
-      showDP(tgt.x+10+Math.random()*22, tgt.y-5, dmg, '#ff4020');
+      showDP(tgt.x+10+Math.random()*20, tgt.y-5, dmg, '#ff4020');
       updateEHP(tgt);
-      // Projectile for archers
       if (unit.type==='archer') spawnProjectile(unit.x,unit.y,tx,ty);
       if (tgt.hp<=0) destroyEBuilding(tgt);
     }
   } else {
-    // Move toward target
     const a=Math.atan2(ty-unit.y, tx-unit.x);
-    unit.x+=Math.cos(a)*unit.spd;
-    unit.y+=Math.sin(a)*unit.spd;
-    const el=document.getElementById('u'+unit.id);
-    if (el) el.style.cssText=`left:${unit.x-12}px;top:${unit.y-12}px;font-size:${unit.type==='cavalry'?'28px':'22px'};transition:left .18s,top .18s`;
+    unit.x+=Math.cos(a)*unit.spd; unit.y+=Math.sin(a)*unit.spd;
+    moveUnit(unit);
   }
+}
+
+function findBlockingWall(unit) {
+  if (!BT.eWalls.some(w=>w.alive)) return null;
+  // Find closest alive building to target
+  const alive = BT.eBuildings.filter(b=>b.alive);
+  if (!alive.length) return null;
+  const nearestBuild = alive.reduce((best,b)=>{
+    const d=Math.hypot(unit.x-(b.x+35),unit.y-(b.y+35));
+    return (!best||d<Math.hypot(unit.x-(best.x+35),unit.y-(best.y+35)))?b:best;
+  },null);
+  if (!nearestBuild) return null;
+  const bx=nearestBuild.x+35, by=nearestBuild.y+35;
+
+  // Check if any alive wall segment lies between unit and building
+  return BT.eWalls.filter(w=>w.alive).find(w=>{
+    const cx=w.x+w.w/2, cy=w.y+w.h/2;
+    const distToWall=Math.hypot(unit.x-cx, unit.y-cy);
+    const distToBuild=Math.hypot(unit.x-bx, unit.y-by);
+    // Wall is "blocking" if it's closer than the building and roughly on the path
+    if (distToWall >= distToBuild) return false;
+    // Check if wall center is within 60px of the line between unit and building
+    const lineLen=Math.hypot(bx-unit.x, by-unit.y);
+    if (lineLen < 1) return false;
+    const t=((cx-unit.x)*(bx-unit.x)+(cy-unit.y)*(by-unit.y))/(lineLen*lineLen);
+    if (t<0||t>1) return false;
+    const projX=unit.x+t*(bx-unit.x), projY=unit.y+t*(by-unit.y);
+    return Math.hypot(cx-projX, cy-projY) < 60;
+  }) || null;
+}
+
+function hitWallDirect(w, dmg) {
+  const el=document.getElementById('ew'+w.id);
+  if (!el) return;
+  const hp=Math.max(0,w.hp/w.maxHp);
+  el.style.opacity = .35 + hp*.6;
+  if (w.hp <= 0) {
+    w.alive=false; BT.destroyed++; updateBHUD();
+    el.style.transition='opacity .4s,transform .4s';
+    el.style.opacity='0'; el.style.transform='scale(.3)';
+    spawnSparks(w.x+w.w/2, w.y+w.h/2);
+    setTimeout(()=>el.remove(),400);
+    notify('🧱 Mur ennemi détruit !');
+  }
+}
+
+function moveUnit(unit) {
+  const el=document.getElementById('u'+unit.id);
+  if (el) el.style.cssText=`left:${unit.x-12}px;top:${unit.y-12}px;
+    font-size:${unit.type==='cavalry'?'28px':'22px'};
+    transition:left .16s,top .16s;position:absolute;
+    filter:${unit.invincible?'drop-shadow(0 0 10px #a040ff) brightness(1.4)':'none'};`;
 }
 
 function destroyEBuilding(tgt) {
   tgt.alive=false; BT.destroyed++;
-  // Explosion sparks
   spawnSparks(tgt.x+30, tgt.y+30);
   const el=document.getElementById('be'+tgt.id);
   if (el) {
@@ -1295,14 +2136,12 @@ function spawnSparks(x, y) {
     const el=document.createElement('div');
     el.className='spark';
     const ang=Math.random()*Math.PI*2, dist=20+Math.random()*40;
-    el.style.cssText=`
-      left:${x-4}px;top:${y-4}px;
+    el.style.cssText=`left:${x-4}px;top:${y-4}px;
       width:${4+Math.random()*5}px;height:${4+Math.random()*5}px;
       background:${col};
       --tx:${Math.cos(ang)*dist}px;--ty:${Math.sin(ang)*dist}px;
       animation-duration:${.4+Math.random()*.4}s;
-      animation-delay:${i*.04}s;
-    `;
+      animation-delay:${i*.04}s;`;
     bw.appendChild(el); setTimeout(()=>el.remove(),900);
   });
 }
@@ -1310,37 +2149,37 @@ function spawnSparks(x, y) {
 function spawnProjectile(fx, fy, tx, ty) {
   const bw=document.getElementById('bw');
   const el=document.createElement('div');
-  el.className='proj'; el.textContent='→';
-  el.style.cssText=`left:${fx}px;top:${fy}px;transition:left .2s,top .2s;opacity:.8`;
+  el.className='proj'; el.textContent='🏹';
+  el.style.cssText=`left:${fx}px;top:${fy}px;transition:left .2s,top .2s;opacity:.85;font-size:12px;position:absolute;pointer-events:none;`;
   bw.appendChild(el);
-  requestAnimationFrame(()=>{el.style.left=tx+'px';el.style.top=ty+'px';});
-  setTimeout(()=>el.remove(),220);
+  requestAnimationFrame(()=>{ el.style.left=tx+'px'; el.style.top=ty+'px'; });
+  setTimeout(()=>el.remove(), 220);
 }
 
 function enemyStrike() {
   if (!BT||BT.ended) return;
-  // Only towers attack
-  const towers=BT.eBuildings.filter(b=>b.alive&&b.type==='tower');
+  const towers = BT.eBuildings.filter(b=>b.alive&&b.type==='tower'&&!(b._frozenUntil&&Date.now()<b._frozenUntil));
   if (!towers.length) return;
-  // Find all living units
-  const units=BT.units.filter(u=>!u.dead);
+  const units = BT.units.filter(u=>!u.dead);
   if (!units.length) return;
-  // Each tower picks the closest unit
   towers.forEach(tower => {
-    const closest=units.reduce((best,u)=>{
-      const d=Math.hypot(u.x-(tower.x+30),u.y-(tower.y+30));
-      return(!best||d<Math.hypot(best.x-(tower.x+30),best.y-(tower.y+30)))?u:best;
-    },null);
+    const closest = units.reduce((best,u)=>{
+      const d=Math.hypot(u.x-(tower.x+35),u.y-(tower.y+35));
+      return (!best||d<Math.hypot(best.x-(tower.x+35),best.y-(tower.y+35)))?u:best;
+    }, null);
     if (!closest) return;
-    const dmg=Math.floor(BT.en.str*.18+Math.random()*7);
-    closest.hp-=dmg;
-    const el=document.getElementById('u'+closest.id);
-    if (el) { el.style.filter='brightness(3)'; setTimeout(()=>{if(el)el.style.filter='';},150); }
-    showDP(closest.x,closest.y-10, dmg,'#ff8040');
-    if (closest.hp<=0) {
-      closest.dead=true; clearInterval(closest.iv);
-      const el2=document.getElementById('u'+closest.id);
-      if (el2) { el2.style.opacity='0'; setTimeout(()=>el2.remove(),300); }
+    const dmg=Math.floor(BT.en.str*.20+Math.random()*8);
+    if (!closest.invincible) {
+      closest.hp-=dmg;
+      const el=document.getElementById('u'+closest.id);
+      if(el){el.style.filter='brightness(3)';setTimeout(()=>{if(el)el.style.filter=closest.invincible?'drop-shadow(0 0 10px #a040ff) brightness(1.4)':'';},160);}
+      showDP(closest.x,closest.y-10, dmg,'#ff8040');
+      spawnProjectile(tower.x+35,tower.y+35,closest.x,closest.y);
+      if (closest.hp<=0) {
+        closest.dead=true; clearInterval(closest.iv);
+        const el2=document.getElementById('u'+closest.id);
+        if(el2){el2.style.opacity='0';setTimeout(()=>el2.remove(),300);}
+      }
     }
   });
 }
@@ -1349,9 +2188,9 @@ function showDP(x, y, d, col='#ff4020') {
   const bw=document.getElementById('bw');
   const el=document.createElement('div');
   el.className='dp';
-  el.textContent='-'+d;
-  el.style.cssText=`left:${x}px;top:${y}px;color:${col};font-size:${d>20?'16px':'13px'}`;
-  bw.appendChild(el); setTimeout(()=>el.remove(),860);
+  el.textContent = typeof d === 'string' ? d : '-'+d;
+  el.style.cssText=`left:${x}px;top:${y}px;color:${col};font-size:${typeof d==='string'||d>25?'15px':'12px'};position:absolute;`;
+  bw.appendChild(el); setTimeout(()=>el.remove(),870);
 }
 
 function updateEHP(b) {
@@ -1363,8 +2202,10 @@ function updateEHP(b) {
 
 function updateBHUD() {
   if (!BT) return;
-  document.getElementById('bhe').textContent=BT.eBuildings.filter(b=>b.alive).length;
-  document.getElementById('bhd').textContent=Math.round(BT.destroyed/BT.total*100)+'%';
+  const aliveB = BT.eBuildings.filter(b=>b.alive).length;
+  const aliveW = BT.eWalls.filter(w=>w.alive).length;
+  document.getElementById('bhe').textContent = aliveB+aliveW;
+  document.getElementById('bhd').textContent = Math.round(BT.destroyed/BT.total*100)+'%';
 }
 
 function checkWin() {
@@ -1378,10 +2219,11 @@ function endBattle() {
 }
 
 function showBattleResult(win) {
-  clearInterval(BT.eatk);
+  clearInterval(BT.eatk); clearInterval(BT.guardTick);
   BT.units.forEach(u=>clearInterval(u.iv));
+  Object.values(BT.spells).forEach(s=>{ if(s.timer) clearInterval(s.timer); });
   const en=BT.en, dp=Math.round(BT.destroyed/BT.total*100);
-  let lg=0,lr=0;
+  let lg=0, lr=0;
   if (win) {
     G.wins++;
     lg=Math.round(en.loot.g*(.7+Math.random()*.3));
@@ -1400,8 +2242,9 @@ function showBattleResult(win) {
   ov.innerHTML=`<div class="bro-box">
     <div class="bro-t ${win?'win':'lose'}">${win?'🏆 VICTOIRE !':'💀 DÉFAITE'}</div>
     <div class="bro-p">${dp}% du village ennemi détruit</div>
-    ${win?`<div class="bro-p" style="color:#80ff80">+${lg} 🪙 &nbsp; +${lr} 🌾 pillés</div>`:
-           `<div class="bro-p" style="color:#ff8060">Certains bâtiments ont été endommagés...</div>`}
+    ${win
+      ?`<div class="bro-p" style="color:#80ff80">+${lg} 🪙 &nbsp; +${lr} 🌾 pillés</div>`
+      :`<div class="bro-p" style="color:#ff8060">Vos bâtiments ont été endommagés...</div>`}
     <div class="bro-p" style="color:rgba(245,224,160,.6)">+${win?40+en.lvl*15:8} XP</div>
     <button class="bro-btn" onclick="closeBattle()">🏠 Retour au Village</button>
   </div>`;
@@ -1411,9 +2254,9 @@ function showBattleResult(win) {
 
 function closeBattle() {
   document.getElementById('bscr').classList.remove('open');
-  document.getElementById('bw').innerHTML='';
+  document.getElementById('bw').innerHTML='<div id="spell-cursor"></div>';
+  document.getElementById('spells-bar').innerHTML='';
   BT=null;
-  // Replenish some troops
   G.troops=Math.min(G.maxTroops, G.troops+Math.ceil(G.maxTroops*.6));
   updateHUD(); renderCards();
 }
